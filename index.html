@@ -179,8 +179,11 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
   .xbtn{font-size:6px;padding:3px 6px}
   .chtab{font-size:6px;padding:3px 6px}
   .sep{display:none}
-  .spacer{display:none}
+  .spacer{flex:0 0 auto;width:0;min-width:0;margin:0}
   .ch-tabs{flex-wrap:wrap}
+  #settingsBtn{position:fixed!important;top:4px;right:4px;z-index:101}
+  #settingsPanel{top:30px!important;right:4px!important}
+  #recInd,#recBtn,#dlBtn{flex-shrink:0}
   .ws-inner{min-width:1500px;min-height:1200px}
   .win{min-width:160px}
   .wh{height:30px;padding:0 6px}
