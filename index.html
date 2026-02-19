@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0">
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width,initial-scale=1.0,maximum-scale=1.0,user-scalable=no">
 <title>STUDIO.EXE</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;700;800&family=Syne:wght@400;700;800&display=swap');
@@ -169,6 +169,33 @@ body{background:var(--bg);color:var(--text);font-family:'JetBrains Mono',monospa
 .bs_btn.soloed{background:#f59e0b!important;color:#000!important;border-color:#f59e0b!important}
 .bsel{background:var(--s3);border:1px solid var(--border);color:var(--text);font-family:inherit;font-size:5px;padding:0 1px;border-radius:2px;width:38px;outline:none}
 ::-webkit-scrollbar{width:5px;height:7px}::-webkit-scrollbar-track{background:var(--bg)}::-webkit-scrollbar-thumb{background:var(--bl);border-radius:3px}::-webkit-scrollbar-corner{background:var(--bg)}
+/* Mobile */
+@media(max-width:768px){
+  .topbar{height:auto;flex-wrap:wrap;padding:4px 6px;gap:3px}
+  .topbar h1{font-size:13px}
+  .abtn{font-size:6px;padding:3px 6px}
+  .xbtn{font-size:6px;padding:3px 6px}
+  .chtab{font-size:6px;padding:3px 6px}
+  .sep{display:none}
+  .spacer{display:none}
+  .ch-tabs{flex-wrap:wrap}
+  .ws-inner{min-width:1500px;min-height:1200px}
+  .win{min-width:160px}
+  .wh{height:30px;padding:0 6px}
+  .wt{font-size:9px}
+  .key,.bkey{min-width:28px!important}
+  .bstep{min-width:20px!important;min-height:20px!important}
+  .bl{width:160px;min-width:160px}
+  input[type="range"]{height:20px}
+  .wresize{width:16px;height:16px}
+}
+@media(max-width:480px){
+  .topbar h1{font-size:11px}
+  .abtn,.xbtn,.chtab{font-size:5.5px;padding:2px 4px}
+  .win{min-width:140px}
+  .key,.bkey{min-width:24px!important}
+  .bl{width:120px;min-width:120px}
+}
 </style>
 <script src="https://surikov.github.io/webaudiofont/npm/dist/WebAudioFontPlayer.js"></script>
 </head>
@@ -248,6 +275,13 @@ document.addEventListener('mousemove',e=>{
   if(_rs){const r=_rs;r.w.style.width=Math.max(200,r.sw+(e.clientX-r.sx))+'px';r.w.style.height=Math.max(80,r.sh+(e.clientY-r.sy))+'px'}
 });
 document.addEventListener('mouseup',()=>{_dr=null;_rs=null});
+// Touch equivalents for window drag/resize
+document.addEventListener('touchmove',e=>{
+  if(_dr||_rs){e.preventDefault();const t=e.touches[0];
+    if(_dr){const d=_dr;const wr=ws.getBoundingClientRect();const mx=t.clientX-wr.left+ws.scrollLeft,my=t.clientY-wr.top+ws.scrollTop;d.w.style.left=Math.max(0,mx-d.ox)+'px';d.w.style.top=Math.max(0,my-d.oy)+'px'}
+    if(_rs){const r=_rs;r.w.style.width=Math.max(200,r.sw+(t.clientX-r.sx))+'px';r.w.style.height=Math.max(80,r.sh+(t.clientY-r.sy))+'px'}}
+},{passive:false});
+document.addEventListener('touchend',()=>{_dr=null;_rs=null});
 function setKb(id){_kb=_kb===id?null:id;document.querySelectorAll('.wb.kb').forEach(b=>b.classList.toggle('active',+b.dataset.mid===_kb))}
 function mkW(title,tag,col,x,y,w,h,ci){
   // center on current viewport
@@ -275,7 +309,14 @@ function mkW(title,tag,col,x,y,w,h,ci){
     const elX=el.offsetLeft, elY=el.offsetTop;
     const mouseWsX=e.clientX-wr.left+ws.scrollLeft, mouseWsY=e.clientY-wr.top+ws.scrollTop;
     _dr={w:el,ox:mouseWsX-elX,oy:mouseWsY-elY}});
+  hd.addEventListener('touchstart',e=>{if(e.target.closest('.wb')||e.target.closest('.wsel'))return;e.preventDefault();
+    el.classList.add('focused');el.style.zIndex=++topZ;
+    const t=e.touches[0];const wr=ws.getBoundingClientRect();
+    const mouseWsX=t.clientX-wr.left+ws.scrollLeft,mouseWsY=t.clientY-wr.top+ws.scrollTop;
+    _dr={w:el,ox:mouseWsX-el.offsetLeft,oy:mouseWsY-el.offsetTop}},{passive:false});
   rsz.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();_rs={w:el,sx:e.clientX,sy:e.clientY,sw:el.offsetWidth,sh:el.offsetHeight}});
+  rsz.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();const t=e.touches[0];
+    _rs={w:el,sx:t.clientX,sy:t.clientY,sw:el.offsetWidth,sh:el.offsetHeight}},{passive:false});
   ct.querySelector('.min').addEventListener('click',()=>el.classList.toggle('collapsed'));
   return{el,bd,sel,bdg,ct};
 }
@@ -361,10 +402,14 @@ function buildBG(m,bd){
         if(ch.steps[s]){st.style.background=ch.c;st.style.borderColor=ch.c}else{st.style.background='';st.style.borderColor=''}
         if(ch.steps[s]&&m.aud(ci)){initA();m.snd(ch)(ctx.currentTime,ch.v,ctx,m.dst())}
         m.ds={v:ch.steps[s],ci,c:ch.c}});
+      st.addEventListener('touchstart',e=>{e.preventDefault();ch.steps[s]=!ch.steps[s];st.classList.toggle('on');
+        if(ch.steps[s]){st.style.background=ch.c;st.style.borderColor=ch.c}else{st.style.background='';st.style.borderColor=''}
+        if(ch.steps[s]&&m.aud(ci)){initA();m.snd(ch)(ctx.currentTime,ch.v,ctx,m.dst())}
+        m.ds={v:ch.steps[s],ci,c:ch.c}},{passive:false});
       st.addEventListener('mouseenter',()=>{if(m.ds&&m.ds.ci===ci){ch.steps[s]=m.ds.v;st.classList.toggle('on',ch.steps[s]);if(ch.steps[s]){st.style.background=m.ds.c;st.style.borderColor=m.ds.c}else{st.style.background='';st.style.borderColor=''}}});
       sc.appendChild(st);sr.push(st)}
     r.appendChild(sc);m.se.push(sr);g.appendChild(r)});
-  w.appendChild(g);bd.appendChild(w);window.addEventListener('mouseup',()=>{m.ds=null});
+  w.appendChild(g);bd.appendChild(w);window.addEventListener('mouseup',()=>{m.ds=null});window.addEventListener('touchend',()=>{m.ds=null});
 }
 function rebCh(m,mode,bd){m.cm=mode;const sv=m.ch.map(c=>({t:c.t,s:c.s,steps:[...c.steps],v:c.v,mut:c.mut,solo:c.solo}));m.ch.length=0;
   BC.forEach((b,i)=>{const s=sv[i];m.ch.push({...b,mut:s?s.mut:false,solo:s?s.solo:false,s:s?s.s:b.s,v:s?s.v:b.v,steps:s?s.steps:new Array(32).fill(false)});
@@ -572,7 +617,13 @@ function addPiano(ci=0){
   m.stopN=(note)=>{const n=m.an[note];if(!n)return;const t=ctx.currentTime;n.g.gain.cancelScheduledValues(t);n.g.gain.setValueAtTime(n.g.gain.value,t);n.g.gain.linearRampToValueAtTime(0,t+m.r);n.o1.stop(t+m.r+.05);n.o2.stop(t+m.r+.05);delete m.an[note]};
   m.relSus=()=>{Object.keys(m.an).forEach(n=>m.stopN(+n));m.an={}};
   m.onStep=()=>{};m.clr=()=>{};
-  sel.addEventListener('change',()=>{m.ci=+sel.value;bdg.style.background=CHR[m.ci];bdg.textContent='CH'+(m.ci+1);filt()});
+  sel.addEventListener('change',()=>{
+    // Release all notes before switching channels to prevent orphaned oscillators
+    if(m.sus)m.relSus();
+    Object.keys(m.an).forEach(n=>m.stopN(+n));
+    el.querySelectorAll('.pk-w.active,.pk-b.active').forEach(k=>k.classList.remove('active'));
+    m.ci=+sel.value;bdg.style.background=CHR[m.ci];bdg.textContent='CH'+(m.ci+1);filt()
+  });
   const ctrl=document.createElement('div');ctrl.className='piano-ctrl';
   const wsel=document.createElement('div');wsel.className='sws';
   ['sine','triangle','sawtooth','square'].forEach(w=>{const b=document.createElement('button');b.className='swb'+(m.wv===w?' active':'');b.textContent=w==='sawtooth'?'SAW':w.slice(0,3).toUpperCase();b.addEventListener('click',()=>{m.wv=w;wsel.querySelectorAll('.swb').forEach(x=>x.classList.remove('active'));b.classList.add('active')});wsel.appendChild(b)});
@@ -1398,7 +1449,11 @@ function addInst(ci=0){
     Object.keys(m.sustainedNotes).forEach(n=>stopNoteSingle(+n));
     m.sustainedNotes={};
   }
-  sel.addEventListener('change',()=>{m.ci=+sel.value;bdg.style.background=CHR[m.ci];bdg.textContent='CH'+(m.ci+1);
+  sel.addEventListener('change',()=>{
+    // Release all notes before switching channels
+    if(m.sustain)releaseSustain();
+    Object.keys(m.notes).forEach(n=>stopNoteSingle(+n));
+    m.ci=+sel.value;bdg.style.background=CHR[m.ci];bdg.textContent='CH'+(m.ci+1);
     dryG=null;rvbNode=null;dlNode=null;filt()});
   // === UI: Instrument Grid ===
   const iGrid=document.createElement('div');iGrid.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:3px';
@@ -1983,5 +2038,41 @@ document.getElementById('resetStudio').addEventListener('click',()=>{
 
 // === INIT ===
 addBeat(0);addMixer();
+
+// === MOBILE SUPPORT ===
+// Global touch polyfill: makes keyboard keys, buttons, and interactive elements work on touch
+// Maps touchstart→mousedown, touchend→mouseup on elements with mouse handlers
+function addTouchPoly(root){
+  // Keyboard keys (white and black)
+  root.querySelectorAll('.key,.bkey').forEach(k=>{
+    k.addEventListener('touchstart',e=>{e.preventDefault();
+      k.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
+    },{passive:false});
+    k.addEventListener('touchend',e=>{e.preventDefault();
+      k.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
+    },{passive:false});
+    k.addEventListener('touchcancel',e=>{
+      k.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
+    });
+  });
+  // Range sliders — make thumb easier to grab on touch
+  root.querySelectorAll('input[type="range"]').forEach(r=>{
+    r.style.touchAction='none';
+  });
+}
+// Patch existing modules
+document.querySelectorAll('.win').forEach(w=>addTouchPoly(w));
+// Patch future modules via MutationObserver
+const wsObs=new MutationObserver(muts=>{
+  muts.forEach(m=>m.addedNodes.forEach(n=>{
+    if(n.nodeType===1&&n.classList&&n.classList.contains('win'))addTouchPoly(n);
+  }));
+});
+wsObs.observe(wsI,{childList:true});
+
+// Prevent rubber-band scroll on iOS
+document.body.addEventListener('touchmove',e=>{
+  if(!e.target.closest('.wbody')&&!e.target.closest('.workspace'))e.preventDefault();
+},{passive:false});
 </script>
 </body></html>
