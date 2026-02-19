@@ -181,8 +181,8 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
   .sep{display:none}
   .spacer{flex:0 0 auto;width:0;min-width:0;margin:0}
   .ch-tabs{flex-wrap:wrap}
-  #settingsBtn{position:fixed!important;top:4px;right:4px;z-index:101}
-  #settingsPanel{top:30px!important;right:4px!important}
+  #settingsBtn{position:fixed!important;right:6px;z-index:101}
+  #settingsPanel{right:6px!important}
   #recInd,#recBtn,#dlBtn{flex-shrink:0}
   .ws-inner{min-width:1500px;min-height:1200px}
   .win{min-width:160px}
@@ -232,7 +232,9 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
 <button class="xbtn" id="recBtn" style="border-color:#ef4444;color:#ef4444">● REC</button>
 <button class="xbtn" id="dlBtn" style="display:none">↓ WAV</button>
 <button class="abtn" id="addSave"><span class="dot" style="background:#10b981"></span>+SAVE</button>
-<button class="xbtn" id="settingsBtn" style="border-color:var(--dim);color:var(--dim)">⚙</button>
+</div>
+<!-- Settings button + panel outside topbar so it never gets pushed -->
+<button class="xbtn" id="settingsBtn" style="position:fixed;top:6px;right:6px;z-index:101;border-color:var(--dim);color:var(--dim)">⚙</button>
 <div id="settingsPanel" style="display:none;position:fixed;top:36px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:10px;z-index:99999;min-width:180px;box-shadow:0 8px 30px rgba(0,0,0,.6)">
 <div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:#fff;margin-bottom:8px;letter-spacing:1px">SETTINGS</div>
 <div style="font-size:6px;color:var(--dim);letter-spacing:.5px;text-transform:uppercase;margin-bottom:4px">Theme</div>
@@ -248,7 +250,6 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
 <div id="accentGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px"></div>
 <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
 <button id="resetStudio" style="width:100%;padding:6px;background:#e8364f18;border:1px solid #e8364f40;border-radius:4px;color:#e8364f;font-family:inherit;font-size:7px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .15s">⟳ RESET STUDIO</button>
-</div>
 </div>
 </div>
 <div class="workspace" id="workspace"><div class="ws-inner" id="wsI"></div></div>
@@ -2079,6 +2080,27 @@ wsObs.observe(wsI,{childList:true});
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.pk-w,.pk-b,.key,.bkey,.bstep,.wh,.pbtn,button'))e.preventDefault();
 });
+// Keep settings button visible on mobile — reposition after topbar reflows
+const _settingsBtn=document.getElementById('settingsBtn');
+const _settingsPanel=document.getElementById('settingsPanel');
+const _topbar=document.querySelector('.topbar');
+function positionSettings(){
+  if(window.innerWidth<=768){
+    const tbH=_topbar.offsetHeight;
+    _settingsBtn.style.top=(tbH-28)+'px';
+    _settingsPanel.style.top=(tbH+4)+'px';
+  } else {
+    _settingsBtn.style.top='6px';
+    _settingsPanel.style.top='36px';
+  }
+}
+positionSettings();
+window.addEventListener('resize',positionSettings);
+// Also reposition when rec/wav buttons appear/disappear
+const _dlBtn=document.getElementById('dlBtn');
+const _recInd=document.getElementById('recInd');
+new MutationObserver(positionSettings).observe(_dlBtn,{attributes:true,attributeFilter:['style']});
+new MutationObserver(positionSettings).observe(_recInd,{attributes:true,attributeFilter:['style']});
 // Prevent rubber-band scroll on iOS
 document.body.addEventListener('touchmove',e=>{
   if(!e.target.closest('.wbody')&&!e.target.closest('.workspace'))e.preventDefault();
