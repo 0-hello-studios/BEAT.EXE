@@ -248,6 +248,7 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
 <button class="xbtn" id="dlBtn" style="display:none">↓ WAV</button>
 <div class="spacer"></div>
 <button class="abtn" id="addSave"><span class="dot" style="background:#10b981"></span>+SAVE</button>
+<button class="xbtn" id="helpBtn" style="border-color:var(--dim);color:var(--dim)">?</button>
 <button class="xbtn" id="settingsBtn" style="border-color:var(--dim);color:var(--dim)">⚙</button>
 </div>
 </div>
@@ -266,6 +267,46 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.bstep,.wh,.wresize{-webkit-touch-cal
 <div id="accentGrid" style="display:grid;grid-template-columns:repeat(5,1fr);gap:4px"></div>
 <div style="border-top:1px solid var(--border);margin-top:10px;padding-top:8px">
 <button id="resetStudio" style="width:100%;padding:6px;background:#e8364f18;border:1px solid #e8364f40;border-radius:4px;color:#e8364f;font-family:inherit;font-size:7px;font-weight:800;letter-spacing:1px;cursor:pointer;transition:all .15s">⟳ RESET STUDIO</button>
+</div>
+</div>
+<div id="helpPanel" style="display:none;position:fixed;top:36px;right:8px;background:var(--surface);border:1px solid var(--border);border-radius:6px;padding:12px;z-index:99999;width:360px;max-height:80vh;overflow-y:auto;box-shadow:0 8px 30px rgba(0,0,0,.6)">
+<div style="font-family:'Syne',sans-serif;font-size:10px;font-weight:800;color:var(--text);margin-bottom:10px;letter-spacing:1px;display:flex;align-items:center;justify-content:space-between">STUDIO.EXE GUIDE<span id="helpClose" style="cursor:pointer;opacity:.5;font-size:14px">×</span></div>
+<div id="helpContent" style="font-size:7px;color:var(--dim);line-height:1.6;letter-spacing:.2px">
+<div style="color:var(--text);font-weight:800;font-size:8px;margin-bottom:6px">Getting Started</div>
+<p style="margin:0 0 8px">Click any <b style="color:var(--text)">+MODULE</b> button in the toolbar to add instruments, effects, and tools to your workspace. Drag windows by their title bars to arrange them. Each module routes audio through one of 4 channels.</p>
+<div style="border-top:1px solid var(--border);margin:8px 0"></div>
+<div style="color:#e8364f;font-weight:800;font-size:7px;margin-bottom:4px">BEAT.EXE — Step Sequencer</div>
+<p style="margin:0 0 8px">8-track grid sequencer. Click cells to toggle hits. Use the <b style="color:var(--text)">Steps</b> dropdown to set grid length (16/32). Genre presets auto-fill patterns. Per-track mute/solo controls on the left.</p>
+<div style="color:#a855f7;font-weight:800;font-size:7px;margin-bottom:4px">SYNTH.EXE — Synthesizer</div>
+<p style="margin:0 0 8px">4-waveform oscillator with dual-osc detune. Play via the keyboard (click or press A-K keys after clicking ⌨). Shape sound with ADSR envelope and lowpass filter knobs.</p>
+<div style="color:#22d3ee;font-weight:800;font-size:7px;margin-bottom:4px">PIANO.EXE / BASS.EXE</div>
+<p style="margin:0 0 8px">Similar to Synth but tuned for piano and bass ranges. Same keyboard controls and knob layout.</p>
+<div style="color:#10b981;font-weight:800;font-size:7px;margin-bottom:4px">NOTE.EXE — Piano Roll</div>
+<p style="margin:0 0 8px">Click the grid to place notes. Each column is one step, rows are pitches. Choose between 10 synth presets or 21 sampled instruments via the 🎻 dropdown. Notes play back in sequence with the transport.</p>
+<div style="color:#f97316;font-weight:800;font-size:7px;margin-bottom:4px">DRUM.EXE — Drum Machine</div>
+<p style="margin:0 0 8px">10-part drum grid (kick, snare, hats, etc). Click = normal hit, right-click cycles velocity (ghost/accent). 4 patterns (A/B/C/D) with chain mode. Euclid generator creates algorithmic rhythms. 12 genre presets.</p>
+<div style="color:#fb923c;font-weight:800;font-size:7px;margin-bottom:4px">TAPE.EXE — Looper</div>
+<p style="margin:0 0 8px">Record from your microphone or drop an audio file onto the waveform. Play, loop, adjust speed. Spinning reels animate during playback.</p>
+<div style="color:#818cf8;font-weight:800;font-size:7px;margin-bottom:4px">SAMPLE.EXE — Sample Pads</div>
+<p style="margin:0 0 8px">Drop audio files onto the 8 pads. Click pads to trigger one-shots. Use with the Edit module to process samples before loading.</p>
+<div style="color:#d946ef;font-weight:800;font-size:7px;margin-bottom:4px">CHORD.EXE — Chord Pads</div>
+<p style="margin:0 0 8px">29 chord types across all 12 roots. Click pads to play chords. 22 genre progression presets auto-sequence chords. Waveform select and ADSR controls shape the chord sound.</p>
+<div style="color:#d946ef;font-weight:800;font-size:7px;margin-bottom:4px">INST.EXE — Instruments</div>
+<p style="margin:0 0 8px">21 sampled instruments (strings, brass, woodwind, guitar, keys, vocal) via WebAudioFont. Play with the 2-octave keyboard. Optional layer adds a second instrument on top. Sustain pedal via spacebar.</p>
+<div style="color:#60a5fa;font-weight:800;font-size:7px;margin-bottom:4px">OSC.EXE — Oscilloscope</div>
+<p style="margin:0 0 8px">Waveform scope with real-time frequency detection. Type any Hz and press Enter to hear it — all keys play that exact frequency. Draw custom waveforms or blend harmonics. <b style="color:var(--text)">→ SYNTH</b> sends settings to open Synth modules. Toggle FFT for spectrum view.</p>
+<div style="color:#06b6d4;font-weight:800;font-size:7px;margin-bottom:4px">EDIT.EXE — Audio Editor</div>
+<p style="margin:0 0 8px">Drop audio to load. Drag the cyan handles to select a region. 3 tool panels: <b style="color:var(--text)">Edit</b> (trim, delete, reverse, silence, duplicate, fade), <b style="color:var(--text)">Gain/Pitch</b> (dB slider, normalize, pitch shift, octave), <b style="color:var(--text)">FX</b> (filter, distort, bitcrush, chorus, echo, reverb, compress, time stretch). 20-level undo. Export as WAV or send to Sampler.</p>
+<div style="color:#f59e0b;font-weight:800;font-size:7px;margin-bottom:4px">FX.EXE — Effects Chain</div>
+<p style="margin:0 0 8px">19 effects that process an entire channel: reverb, delay, chorus, phaser, flanger, distortion, bitcrush, tremolo, ring mod, EQ, compressor, limiter, gate, pitch shift, and more. Toggle each on/off. Assign to any channel.</p>
+<div style="color:#10b981;font-weight:800;font-size:7px;margin-bottom:4px">MIXER / SAVE</div>
+<p style="margin:0 0 8px"><b style="color:var(--text)">Mixer</b> controls 4 channels with BPM, swing, play/stop. Channel sequencing modes: All, Chain, A/B, Custom patterns. <b style="color:var(--text)">Save</b> serializes your entire session to JSON — download and reload later. <b style="color:var(--text)">↓ WAV</b> in the toolbar exports a real-time recording.</p>
+<div style="border-top:1px solid var(--border);margin:8px 0"></div>
+<div style="color:var(--text);font-weight:800;font-size:7px;margin-bottom:4px">Tips</div>
+<p style="margin:0 0 4px">• <b style="color:var(--text)">⌨ button</b> on any keyboard module — click to capture keyboard focus, then play with A-K keys</p>
+<p style="margin:0 0 4px">• <b style="color:var(--text)">Channel routing</b> — use the CH dropdown on each module to route audio through different mixer channels</p>
+<p style="margin:0 0 4px">• <b style="color:var(--text)">Copy/Paste</b> — ⧉/⊞ buttons on modules share settings between sound sources</p>
+<p style="margin:0 0 4px">• <b style="color:var(--text)">⚙ Settings</b> — themes, grid style, accent color, workspace background</p>
 </div>
 </div>
 <div class="workspace" id="workspace"><div class="ws-inner" id="wsI"></div></div>
@@ -3180,9 +3221,15 @@ function bufToWav(audioBuf){
 
 // === SETTINGS ===
 document.getElementById('settingsBtn').addEventListener('click',()=>{
-  const p=document.getElementById('settingsPanel');p.style.display=p.style.display==='none'?'block':'none'});
-document.addEventListener('click',e=>{const p=document.getElementById('settingsPanel');
-  if(p.style.display!=='none'&&!p.contains(e.target)&&e.target.id!=='settingsBtn')p.style.display='none'});
+  const p=document.getElementById('settingsPanel');p.style.display=p.style.display==='none'?'block':'none';
+  document.getElementById('helpPanel').style.display='none'});
+document.getElementById('helpBtn').addEventListener('click',()=>{
+  const p=document.getElementById('helpPanel');p.style.display=p.style.display==='none'?'block':'none';
+  document.getElementById('settingsPanel').style.display='none'});
+document.getElementById('helpClose').addEventListener('click',()=>{document.getElementById('helpPanel').style.display='none'});
+document.addEventListener('click',e=>{const p=document.getElementById('settingsPanel');const h=document.getElementById('helpPanel');
+  if(p.style.display!=='none'&&!p.contains(e.target)&&e.target.id!=='settingsBtn')p.style.display='none';
+  if(h.style.display!=='none'&&!h.contains(e.target)&&e.target.id!=='helpBtn')h.style.display='none'});
 const THEMES=[
   {name:'VOID',bg:'#08080c',surface:'#101015',s2:'#18181f',s3:'#202028',border:'#2a2a35',text:'#e0e0e8',dim:'#555568',dot:'rgba(255,255,255,.1)'},
   {name:'NEON BLEED',bg:'#0a0008',surface:'#14000f',s2:'#22001a',s3:'#330028',border:'#ff00aa30',text:'#ff88dd',dim:'#aa3388',dot:'rgba(255,0,170,.15)'},
