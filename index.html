@@ -931,7 +931,7 @@ document.addEventListener('touchmove',e=>{
     if(_dr){const d=_dr;const wr=ws.getBoundingClientRect();const mx=t.clientX-wr.left+ws.scrollLeft,my=t.clientY-wr.top+ws.scrollTop;d.w.style.left=Math.max(0,mx-d.ox)+'px';d.w.style.top=Math.max(0,my-d.oy)+'px'}
     if(_rs){const r=_rs;r.w.style.width=Math.max(200,r.sw+(t.clientX-r.sx))+'px';r.w.style.height=Math.max(80,r.sh+(t.clientY-r.sy))+'px'}}
 },{passive:false});
-document.addEventListener('touchend',()=>{_dr=null;_rs=null});
+document.addEventListener('touchend',()=>{if(_dr||_rs)unlockWsScroll();_dr=null;_rs=null});
 function setKb(id){_kb=_kb===id?null:id;document.querySelectorAll('.wb.kb').forEach(b=>b.classList.toggle('active',+b.dataset.mid===_kb))}
 function mkW(title,tag,col,x,y,w,h,ci){
   // center on current viewport
@@ -960,12 +960,12 @@ function mkW(title,tag,col,x,y,w,h,ci){
     const mouseWsX=e.clientX-wr.left+ws.scrollLeft, mouseWsY=e.clientY-wr.top+ws.scrollTop;
     _dr={w:el,ox:mouseWsX-elX,oy:mouseWsY-elY}});
   hd.addEventListener('touchstart',e=>{if(e.target.closest('.wb')||e.target.closest('.wsel'))return;e.preventDefault();
-    el.classList.add('focused');el.style.zIndex=++topZ;
+    el.classList.add('focused');el.style.zIndex=++topZ;lockWsScroll();
     const t=e.touches[0];const wr=ws.getBoundingClientRect();
     const mouseWsX=t.clientX-wr.left+ws.scrollLeft,mouseWsY=t.clientY-wr.top+ws.scrollTop;
     _dr={w:el,ox:mouseWsX-el.offsetLeft,oy:mouseWsY-el.offsetTop}},{passive:false});
   rsz.addEventListener('mousedown',e=>{e.preventDefault();e.stopPropagation();_rs={w:el,sx:e.clientX,sy:e.clientY,sw:el.offsetWidth,sh:el.offsetHeight}});
-  rsz.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();const t=e.touches[0];
+  rsz.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();lockWsScroll();const t=e.touches[0];
     _rs={w:el,sx:t.clientX,sy:t.clientY,sw:el.offsetWidth,sh:el.offsetHeight}},{passive:false});
   ct.querySelector('.min').addEventListener('click',()=>el.classList.toggle('collapsed'));
   // 🎨 per-module theme button
@@ -4391,7 +4391,7 @@ function addOsc(ci=0){
   drawCvs.addEventListener('mousedown',e=>{drawDown=true;drawAt(e)});
   drawCvs.addEventListener('mousemove',e=>{if(drawDown)drawAt(e)});
   window.addEventListener('mouseup',()=>{if(drawDown&&m.looping&&m.useCustom){stopLoop();startLoop()}drawDown=false});
-  drawCvs.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();drawDown=true;
+  drawCvs.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();drawDown=true;lockWsScroll();
     // Disable parent scroll while drawing
     const wb=drawCvs.closest('.wbody');if(wb){wb.style.overflow='hidden';wb.style.touchAction='none'}
     drawAt(e.touches[0])},{passive:false});
@@ -4399,6 +4399,7 @@ function addOsc(ci=0){
   drawCvs.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();
     // Re-enable parent scroll
     const wb=drawCvs.closest('.wbody');if(wb){wb.style.overflow='auto';wb.style.touchAction=''}
+    unlockWsScroll();
     if(drawDown&&m.looping&&m.useCustom){stopLoop();startLoop()}drawDown=false},{passive:false});
   const drawCtrl=document.createElement('div');drawCtrl.style.cssText='display:flex;gap:3px;margin-top:3px';
   ['Sine','Saw','Sqr','Noise','Clear'].forEach(name=>{
@@ -7423,7 +7424,7 @@ function addTracks(ci=0){
         // Touch clip drag
         clipEl.addEventListener('touchstart',e=>{
           if(e.target.classList.contains('arr-clip-handle'))return;
-          e.stopPropagation();e.preventDefault();selectedClip=c;
+          e.stopPropagation();e.preventDefault();selectedClip=c;lockWsScroll();
           const touch=e.touches[0];
           const startX=touch.clientX,startY=touch.clientY,origBeat=c.startBeat;
           let moved=false;let curTrackIdx=ti;
@@ -7442,7 +7443,7 @@ function addTracks(ci=0){
             }
             clipEl.style.top=(3+(curTrackIdx-ti)*TRACK_H)+'px';
           };
-          const onUp=()=>{window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);clipEl.classList.remove('dragging');if(moved){render();if(m.playing){const cur=needleBeat*(60/m.bpm);playSrcs.forEach(s=>{try{s.stop()}catch(e){}});playSrcs=[];m.playing=false;playAll_arr(cur)}}};
+          const onUp=()=>{window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);unlockWsScroll();clipEl.classList.remove('dragging');if(moved){render();if(m.playing){const cur=needleBeat*(60/m.bpm);playSrcs.forEach(s=>{try{s.stop()}catch(e){}});playSrcs=[];m.playing=false;playAll_arr(cur)}}};
           window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('touchend',onUp);
         },{passive:false});
         // Right-click delete
@@ -7458,21 +7459,21 @@ function addTracks(ci=0){
             clipEl.style.left=beatsToPx(c.startBeat)+'px';clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)}};
           const onU=()=>{window.removeEventListener('mousemove',onM);window.removeEventListener('mouseup',onU);render()};
           window.addEventListener('mousemove',onM);window.addEventListener('mouseup',onU)});
-        hL.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();const sx=e.touches[0].clientX,os=c.startBeat,od=c.durBeats,oo=c.offset||0;
+        hL.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();lockWsScroll();const sx=e.touches[0].clientX,os=c.startBeat,od=c.durBeats,oo=c.offset||0;
           const onM=ev=>{ev.preventDefault();const tx=ev.touches[0].clientX;const ns=snapBeats(os+pxToBeats(tx-sx)),d=ns-os;if(od-d>.25){
             const secPerBeat=60/m.bpm;const offsetDelta=d*secPerBeat;
             c.offset=Math.max(0,oo+offsetDelta);c.startBeat=ns;c.durBeats=od-d;
             clipEl.style.left=beatsToPx(c.startBeat)+'px';clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)}};
-          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);render()};
+          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);unlockWsScroll();render()};
           window.addEventListener('touchmove',onM,{passive:false});window.addEventListener('touchend',onU)},{passive:false});
         const hR=document.createElement('div');hR.className='arr-clip-handle right';
         hR.addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();const sx=e.clientX,od=c.durBeats;
           const onM=ev=>{c.durBeats=Math.max(.25,snapBeats(od+pxToBeats(ev.clientX-sx)));clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)};
           const onU=()=>{window.removeEventListener('mousemove',onM);window.removeEventListener('mouseup',onU);render()};
           window.addEventListener('mousemove',onM);window.addEventListener('mouseup',onU)});
-        hR.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();const sx=e.touches[0].clientX,od=c.durBeats;
+        hR.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();lockWsScroll();const sx=e.touches[0].clientX,od=c.durBeats;
           const onM=ev=>{ev.preventDefault();const tx=ev.touches[0].clientX;c.durBeats=Math.max(.25,snapBeats(od+pxToBeats(tx-sx)));clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)};
-          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);render()};
+          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);unlockWsScroll();render()};
           window.addEventListener('touchmove',onM,{passive:false});window.addEventListener('touchend',onU)},{passive:false});
         clipEl.append(hL,hR);body.appendChild(clipEl);
       });
@@ -7587,43 +7588,70 @@ function addTracks(ci=0){
 addBeat(0);addMixer();
 
 // === MOBILE SUPPORT ===
+// === WORKSPACE SCROLL LOCK FOR TOUCH ===
+// Locks workspace scroll when touching interactive elements inside modules
+// so dragging doesn't fight with workspace panning
+const _wsEl=document.querySelector('.workspace');
+let _wsLockCount=0;
+function lockWsScroll(){
+  _wsLockCount++;
+  if(_wsEl&&_wsLockCount===1){_wsEl.style.overflow='hidden';_wsEl.style.touchAction='none'}
+}
+function unlockWsScroll(){
+  _wsLockCount=Math.max(0,_wsLockCount-1);
+  if(_wsEl&&_wsLockCount===0){_wsEl.style.overflow='';_wsEl.style.touchAction=''}
+}
+
 // Global touch polyfill: makes keyboard keys, buttons, and interactive elements work on touch
 // Maps touchstart→mousedown, touchend→mouseup on elements with mouse handlers
 function addTouchPoly(root){
   // ALL keyboard keys: synth (.swk,.sbk), piano (.pk-w,.pk-b), old (.key,.bkey)
   root.querySelectorAll('.key,.bkey,.swk,.sbk,.pk-w,.pk-b').forEach(k=>{
-    k.addEventListener('touchstart',e=>{e.preventDefault();
+    k.addEventListener('touchstart',e=>{e.preventDefault();lockWsScroll();
       k.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
     },{passive:false});
-    k.addEventListener('touchend',e=>{e.preventDefault();
+    k.addEventListener('touchend',e=>{e.preventDefault();unlockWsScroll();
       k.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
     },{passive:false});
-    k.addEventListener('touchcancel',e=>{
+    k.addEventListener('touchcancel',e=>{unlockWsScroll();
       k.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
     });
   });
   // Drum grid cells
   root.querySelectorAll('.drumgrid div[style*="cursor:pointer"]').forEach(c=>{
-    c.addEventListener('touchstart',e=>{e.preventDefault();
+    c.addEventListener('touchstart',e=>{e.preventDefault();lockWsScroll();
       c.dispatchEvent(new MouseEvent('mousedown',{bubbles:true,button:0}));
     },{passive:false});
+    c.addEventListener('touchend',()=>unlockWsScroll());
+    c.addEventListener('touchcancel',()=>unlockWsScroll());
   });
   // Note grid cells (.nr-cell)
   root.querySelectorAll('.nr-cell').forEach(c=>{
-    c.addEventListener('touchstart',e=>{e.preventDefault();
+    c.addEventListener('touchstart',e=>{e.preventDefault();lockWsScroll();
       c.dispatchEvent(new MouseEvent('mousedown',{bubbles:true}));
     },{passive:false});
     c.addEventListener('touchmove',e=>{e.preventDefault();
       const t=e.touches[0];const el=document.elementFromPoint(t.clientX,t.clientY);
       if(el&&el.classList.contains('nr-cell'))el.dispatchEvent(new MouseEvent('mouseenter',{bubbles:true}));
     },{passive:false});
-    c.addEventListener('touchend',e=>{
+    c.addEventListener('touchend',e=>{unlockWsScroll();
       window.dispatchEvent(new MouseEvent('mouseup',{bubbles:true}));
     });
+    c.addEventListener('touchcancel',()=>unlockWsScroll());
   });
   // Range sliders — make thumb easier to grab on touch
   root.querySelectorAll('input[type="range"]').forEach(r=>{
     r.style.touchAction='none';
+    r.addEventListener('touchstart',()=>lockWsScroll(),{passive:true});
+    r.addEventListener('touchend',()=>unlockWsScroll(),{passive:true});
+    r.addEventListener('touchcancel',()=>unlockWsScroll());
+  });
+  // Beat steps (.bstep)
+  root.querySelectorAll('.bstep').forEach(s=>{
+    s.addEventListener('touchstart',()=>lockWsScroll(),{passive:true});
+    s.addEventListener('touchend',()=>unlockWsScroll(),{passive:true});
+    s.addEventListener('touchcancel',()=>unlockWsScroll());
+  });
   });
 }
 // Patch existing modules
