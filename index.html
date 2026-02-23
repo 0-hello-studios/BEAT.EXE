@@ -5219,7 +5219,7 @@ document.getElementById('resetStudio').addEventListener('click',()=>{
 // === AUTOMATE.EXE — parameter automation curves ===
 function addAuto(ci=0){
   const id=mid++;
-  const{el,bd,sel,bdg,ct}=mkW('AUTO<span>.EXE</span>','Automate','#f59e0b',100+(mods.length%4)*30,60+(mods.length%4)*20,600,240,ci);
+  const{el,bd,sel,bdg,ct}=mkW('AUTO<span>.EXE</span>','Automate','#f59e0b',100+(mods.length%4)*30,60+(mods.length%4)*20,600,300,ci);
   el.id='m'+id;
   const PARAMS=[
     {name:'Volume',key:'vol',min:0,max:100,def:75,unit:'%'},
@@ -5247,15 +5247,15 @@ function addAuto(ci=0){
     m.curves[p.key]=nw});m.ts=ns;drawCurve()});
   // shape buttons
   function mkSh(txt,title,fn){const b=document.createElement('button');b.className='pbtn';b.style.fontSize='5px';b.textContent=txt;b.title=title;b.addEventListener('click',fn);return b}
-  const flatBtn=mkSh('—','Flat',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);m.curves[m.activeParam].fill(p.def);drawCurve()});
-  const rampUp=mkSh('↗','Ramp up',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.min+(p.max-p.min)*(i/(c.length-1));drawCurve()});
-  const rampDn=mkSh('↘','Ramp down',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.max-(p.max-p.min)*(i/(c.length-1));drawCurve()});
-  const sineBtn=mkSh('∿','Sine LFO',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.def+(p.max-p.def)*Math.sin(i/c.length*Math.PI*4);drawCurve()});
-  const randBtn=mkSh('⚄','Random',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.min+Math.random()*(p.max-p.min);drawCurve()});
+  const flatBtn=mkSh('—','Flat',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);m.curves[m.activeParam].fill(p.def);drawCurve();applyNow()});
+  const rampUp=mkSh('↗','Ramp up',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.min+(p.max-p.min)*(i/(c.length-1));drawCurve();applyNow()});
+  const rampDn=mkSh('↘','Ramp down',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.max-(p.max-p.min)*(i/(c.length-1));drawCurve();applyNow()});
+  const sineBtn=mkSh('∿','Sine LFO',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.def+(p.max-p.def)*Math.sin(i/c.length*Math.PI*4);drawCurve();applyNow()});
+  const randBtn=mkSh('⚄','Random',()=>{const p=PARAMS.find(x=>x.key===m.activeParam);const c=m.curves[m.activeParam];for(let i=0;i<c.length;i++)c[i]=p.min+Math.random()*(p.max-p.min);drawCurve();applyNow()});
   cfg.append(pSel,stSel,flatBtn,rampUp,rampDn,sineBtn,randBtn);
   bd.appendChild(cfg);
   // canvas
-  const cvs=document.createElement('canvas');cvs.style.cssText='width:100%;flex:1;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair;min-height:0;touch-action:none;-webkit-touch-callout:none';
+  const cvs=document.createElement('canvas');cvs.style.cssText='width:100%;flex:1;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair;min-height:80px;touch-action:none;-webkit-touch-callout:none';
   bd.appendChild(cvs);bd.style.display='flex';bd.style.flexDirection='column';
   // value readout
   const readout=document.createElement('div');readout.style.cssText='font-size:6px;color:var(--dim);font-weight:700;padding:2px 0 0;min-height:10px';
@@ -5298,7 +5298,8 @@ function addAuto(ci=0){
   }
   function setPoint(e){const{step,val}=getStepVal(e);const p=PARAMS.find(x=>x.key===m.activeParam);
     m.curves[m.activeParam][step]=Math.round(val*100)/100;drawCurve();
-    readout.textContent='Step '+(step+1)+': '+Math.round(val)+' '+p.unit}
+    readout.textContent='Step '+(step+1)+': '+Math.round(val)+' '+p.unit;
+    applyNow()}
   cvs.addEventListener('mousedown',e=>{drawing=true;setPoint(e)});
   cvs.addEventListener('mousemove',e=>{if(drawing)setPoint(e);else{const{step,val}=getStepVal(e);const p=PARAMS.find(x=>x.key===m.activeParam);readout.textContent='Step '+(step+1)+': '+Math.round(m.curves[m.activeParam][step])+' '+p.unit}});
   window.addEventListener('mouseup',()=>{drawing=false});
@@ -5311,10 +5312,8 @@ function addAuto(ci=0){
     const wb=cvs.closest('.wbody');if(wb){wb.style.overflow='auto';wb.style.touchAction=''}
     unlockWsScroll();drawing=false;},{passive:false});
   // apply curves to channel in real-time
-  function applyCurves(step){
-    if(!ctx)return;const ch=chs[m.ci];if(!ch||!ch.g)return;const now=ctx.currentTime;
-    const len=m.curves.vol?m.curves.vol.length:32;const s=((step%len)+len)%len;
-    // Ensure auto nodes exist — lazy init once
+  function ensureChain(){
+    if(!ctx)return false;const ch=chs[m.ci];if(!ch||!ch.g)return false;
     if(!m._autoNodes){
       m._autoNodes={};
       m._autoNodes.lpf=ctx.createBiquadFilter();m._autoNodes.lpf.type='lowpass';m._autoNodes.lpf.frequency.value=20000;m._autoNodes.lpf.Q.value=3;
@@ -5326,17 +5325,27 @@ function addAuto(ci=0){
       m._autoNodes.hpf.connect(m._autoNodes.pan);
       m._autoNodes.pan.connect(m._autoNodes.gain);
       m._autoNodes.gain.connect(mGain);
-      // connect source
-      ch.g.connect(m._autoNodes.lpf);
-      try{ch.g.disconnect(mGain)}catch(e){}
+      // Insert between scDuck and mGain (actual routing: ch.g → ch.scDuck → mGain)
+      // Check for FX limiter first
       const fx=mods.find(x=>x.type==='fx'&&x.ci===m.ci&&x._nd&&x._nd.ok);
       if(fx&&fx._nd.limiter){
+        // FX routing: ch.scDuck → fx chain → limiter → mGain
         try{fx._nd.limiter.disconnect(mGain)}catch(e){}
         fx._nd.limiter.connect(m._autoNodes.lpf);
-        try{ch.g.disconnect(m._autoNodes.lpf)}catch(e){}
-        m._autoNodes._fxLimiter=fx._nd.limiter;
+        m._autoNodes._src=fx._nd.limiter;
+      }else{
+        // Normal routing: ch.scDuck → mGain
+        try{ch.scDuck.disconnect(mGain)}catch(e){}
+        ch.scDuck.connect(m._autoNodes.lpf);
+        m._autoNodes._src=ch.scDuck;
       }
     }
+    return true;
+  }
+  function applyCurves(step){
+    if(!ensureChain())return;
+    const now=ctx.currentTime;
+    const len=m.curves.vol?m.curves.vol.length:32;const s=((step%len)+len)%len;
     // Volume
     const vc=m.curves.vol;if(vc)m._autoNodes.gain.gain.setTargetAtTime(vc[s]/100,now,.02);
     // LP Filter
@@ -5346,22 +5355,31 @@ function addAuto(ci=0){
     // Pan
     const pc=m.curves.pan;if(pc)m._autoNodes.pan.pan.setTargetAtTime(pc[s]/100,now,.02);
     // Swing
-    const swc=m.curves.sw;if(swc)ch.sw=swc[s];
+    const swc=m.curves.sw;if(swc)chs[m.ci].sw=swc[s];
     // Send FX — control reverb/delay wet
     const snc=m.curves.send;if(snc){
       mods.forEach(x=>{if(x.type==='fx'&&x.ci===m.ci&&x._nd){
         if(x._nd.rvG)x._nd.rvG.gain.setTargetAtTime(snc[s]/100,now,.02);
         if(x._nd.dlG)x._nd.dlG.gain.setTargetAtTime(snc[s]/100,now,.02)}})}
   }
+  // Apply current param at step 0 immediately when user draws
+  function applyNow(){
+    if(!ensureChain())return;
+    const now=ctx.currentTime;const p=m.activeParam;const curve=m.curves[p];if(!curve||!curve.length)return;
+    // Apply all steps' average or first step — just use step 0 for immediate feedback
+    const v=curve[0];
+    if(p==='vol')m._autoNodes.gain.gain.setTargetAtTime(v/100,now,.02);
+    if(p==='flt')m._autoNodes.lpf.frequency.setTargetAtTime(Math.max(20,Math.min(20000,v)),now,.02);
+    if(p==='hpf')m._autoNodes.hpf.frequency.setTargetAtTime(Math.max(20,Math.min(20000,v)),now,.02);
+    if(p==='pan')m._autoNodes.pan.pan.setTargetAtTime(v/100,now,.02);
+  }
   // cleanup
   m.destroy=()=>{
     if(m._autoNodes){
-      const ch=chs[m.ci];
-      if(m._autoNodes._fxLimiter){
-        try{m._autoNodes._fxLimiter.disconnect(m._autoNodes.lpf)}catch(e){}
-        m._autoNodes._fxLimiter.connect(mGain);
-      }else if(ch&&ch.g){
-        ch.g.connect(mGain);
+      // Restore original routing
+      if(m._autoNodes._src){
+        try{m._autoNodes._src.disconnect(m._autoNodes.lpf)}catch(e){}
+        m._autoNodes._src.connect(mGain);
       }
       [m._autoNodes.lpf,m._autoNodes.hpf,m._autoNodes.pan,m._autoNodes.gain].forEach(n=>{try{if(n)n.disconnect()}catch(e){}});
       m._autoNodes=null;
