@@ -4515,8 +4515,10 @@ function addOsc(ci=0){
     drawToggle.style.borderColor=_autoDrawMode?'#f59e0b':'';
     drawCvs.style.borderColor=_autoDrawMode?'#f59e0b':'var(--border)';
     drawCvs.style.boxShadow=_autoDrawMode?'0 0 12px rgba(245,158,11,.3)':'none';
+    // Show canvas when draw mode on, regardless of shape
+    if(_autoDrawMode)drawRow.style.display='block';
   });
-  drawRow.appendChild(drawToggle);
+  bd.appendChild(drawToggle);
   const drawCvs=document.createElement('canvas');
   const _isTouch='ontouchstart'in window||navigator.maxTouchPoints>0;
   drawCvs.style.cssText='width:100%;height:'+(_isTouch?'100':'60')+'px;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair;touch-action:none;-webkit-touch-callout:none;-ms-touch-action:none';
