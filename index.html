@@ -315,15 +315,15 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
 /* ═══ TABLET / TOUCH (iPad) ═══ */
 @media(pointer:coarse){
   /* Toolbar — bigger touch targets */
-  .tb-row1{height:42px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch}
-  .tb-row2{height:36px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch}
-  .abtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px}
+  .tb-row1{height:42px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch;overflow-x:auto;overflow-y:hidden}
+  .tb-row2{height:36px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch;overflow-x:auto;overflow-y:hidden}
+  .abtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px;flex-shrink:0}
   .abtn .dot{width:6px;height:6px}
-  .xbtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px}
-  .chtab{font-size:8px;padding:5px 8px;min-height:32px}
+  .xbtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px;flex-shrink:0}
+  .chtab{font-size:8px;padding:5px 8px;min-height:32px;flex-shrink:0}
   .chtab .cdot{width:6px;height:6px}
-  .ch-tabs{gap:3px}
-  .topbar h1{font-size:13px}
+  .ch-tabs{gap:3px;flex-shrink:0}
+  .topbar h1{font-size:13px;flex-shrink:0}
   .sep{height:20px;margin:0 3px}
 
   /* Windows — larger headers, drag areas, close buttons */
@@ -344,8 +344,9 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .pk-b{width:18px;height:58%}
 
   /* Form elements */
-  input[type="range"]{height:8px;min-height:28px}
-  input[type="range"]::-webkit-slider-thumb{width:20px;height:20px;border-radius:50%;margin-top:-6px}
+  input[type="range"]{height:8px;min-height:36px;touch-action:none}
+  input[type="range"]::-webkit-slider-thumb{width:24px;height:24px;border-radius:50%;margin-top:-8px;box-shadow:0 0 0 3px var(--surface),0 2px 8px rgba(0,0,0,.4)}
+  input[type="range"]::-webkit-slider-runnable-track{height:8px;border-radius:4px}
   select{font-size:10px!important;min-height:30px;padding:4px 8px!important;border-radius:4px}
   input[type="text"],input[type="number"],textarea{font-size:12px!important;min-height:30px;padding:4px 8px!important}
   input[type="color"]{width:36px;height:32px;border-radius:5px;padding:2px}
@@ -7669,13 +7670,41 @@ const wsObs=new MutationObserver(muts=>{
 });
 wsObs.observe(wsI,{childList:true});
 
+// Range slider touch polyfill — drag anywhere on the track
+function rangeFromTouch(range,touch){
+  const rect=range.getBoundingClientRect();
+  const x=touch.clientX-rect.left;
+  const ratio=Math.max(0,Math.min(1,x/rect.width));
+  const min=parseFloat(range.min)||0;
+  const max=parseFloat(range.max)||100;
+  const step=parseFloat(range.step)||1;
+  let v=min+ratio*(max-min);
+  v=Math.round(v/step)*step;
+  range.value=v;
+  range.dispatchEvent(new Event('input',{bubbles:true}));
+}
+document.addEventListener('touchstart',e=>{
+  const range=e.target.closest('input[type="range"]');
+  if(!range)return;
+  e.preventDefault();
+  rangeFromTouch(range,e.touches[0]);
+  const onM=ev=>{ev.preventDefault();rangeFromTouch(range,ev.touches[0])};
+  const onU=()=>{
+    window.removeEventListener('touchmove',onM);
+    window.removeEventListener('touchend',onU);
+    range.dispatchEvent(new Event('change',{bubbles:true}));
+  };
+  window.addEventListener('touchmove',onM,{passive:false});
+  window.addEventListener('touchend',onU);
+},{passive:false});
+
 // Prevent iOS long-press context menu on interactive elements
 document.addEventListener('contextmenu',e=>{
   if(e.target.closest('.pk-w,.pk-b,.swk,.sbk,.key,.bkey,.bstep,.wh,.pbtn,.nr-cell,button,.arr-clip,.arr-clip-handle'))e.preventDefault();
 });
 // Prevent rubber-band scroll on iOS
 document.body.addEventListener('touchmove',e=>{
-  if(!e.target.closest('.wbody,.workspace,.piano-kb,.skb,.nr-wrap,.arr-timeline,.tb-row1,.tb-row2,#themeGrid,canvas'))e.preventDefault();
+  if(!e.target.closest('.wbody,.workspace,.piano-kb,.skb,.nr-wrap,.arr-timeline,.tb-row1,.tb-row2,#themeGrid,canvas,input[type="range"]'))e.preventDefault();
 },{passive:false});
 
 // Touch press feedback on buttons
