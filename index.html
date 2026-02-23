@@ -5035,6 +5035,21 @@ document.getElementById('addSidechain').addEventListener('click',()=>addSidechai
 document.getElementById('addCollab').addEventListener('click',()=>addCollab());
 document.getElementById('addLearn').addEventListener('click',()=>addLearn());
 
+// === AUDIO CONTEXT RESUME — prevent background suspension killing audio ===
+document.addEventListener('visibilitychange',()=>{
+  if(!document.hidden&&ctx&&ctx.state==='suspended'){ctx.resume().then(()=>console.log('[STUDIO] AudioContext resumed from visibility change'))}
+});
+window.addEventListener('focus',()=>{
+  if(ctx&&ctx.state==='suspended'){ctx.resume().then(()=>console.log('[STUDIO] AudioContext resumed from focus'))}
+});
+// Also catch touch/click anywhere as a resume trigger (iOS requires user gesture)
+document.addEventListener('touchstart',()=>{
+  if(ctx&&ctx.state==='suspended')ctx.resume();
+},{passive:true,once:false});
+document.addEventListener('mousedown',()=>{
+  if(ctx&&ctx.state==='suspended')ctx.resume();
+},{once:false});
+
 // === GLOBAL KEYS ===
 window.addEventListener('keydown',e=>{if(e.repeat)return;if(e.code==='Space'&&_kb!==null){return}if(e.code==='Space'){e.preventDefault();const any=chs.some(c=>c.on);if(any)chs.forEach((c,i)=>{if(c.on)stopCh(i)});else startCh(0);return}if(e.code==='Escape'){chs.forEach((c,i)=>stopCh(i));return}});
 
