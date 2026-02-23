@@ -5156,6 +5156,14 @@ const THEMES=[
   {name:'SANDSTORM',bg:'#f0e4c8',surface:'#f8ecd4',s2:'#e8d8b8',s3:'#dccca8',border:'#c4a86e',text:'#4a3818',dim:'#9a8050',dot:'rgba(160,120,40,.08)'},
   {name:'GARAGE',bg:'#161616',surface:'#202020',s2:'#2a2a2a',s3:'#343434',border:'#e8364f25',text:'#d0d0d0',dim:'#707070',dot:'rgba(232,54,79,.06)'},
   {name:'STUDIO B',bg:'#12101a',surface:'#1c1828',s2:'#262236',s3:'#302c44',border:'#6644aa30',text:'#bb99ee',dim:'#7755aa',dot:'rgba(102,68,170,.1)'},
+  // === ANTI BLUE LIGHT ===
+  {name:'WARM NIGHT',bg:'#1a1410',surface:'#231c16',s2:'#2c241e',s3:'#362e26',border:'#443a3040',text:'#d4c8b0',dim:'#8a7e66',dot:'rgba(180,150,100,.06)'},
+  {name:'CANDLELIGHT',bg:'#1c1608',surface:'#28200e',s2:'#342a16',s3:'#40341e',border:'#50402840',text:'#e8d8b4',dim:'#9a8860',dot:'rgba(200,170,80,.06)'},
+  {name:'SEPIA',bg:'#2a2018',surface:'#362a20',s2:'#423428',s3:'#4e3e30',border:'#5e4c3c40',text:'#dccca8',dim:'#9a886a',dot:'rgba(180,150,100,.06)'},
+  {name:'CAMPFIRE+',bg:'#1a1008',surface:'#281a0e',s2:'#382414',s3:'#48301c',border:'#5c3e2640',text:'#e8d0a8',dim:'#987850',dot:'rgba(200,140,60,.08)'},
+  {name:'PARCHMENT',bg:'#f0e8d8',surface:'#e6dcc8',s2:'#dcd0b8',s3:'#d0c4a8',border:'#c0b49440',text:'#3a3020',dim:'#7a6e54',dot:'rgba(80,60,30,.05)'},
+  {name:'AMBER',bg:'#181008',surface:'#241a0c',s2:'#302410',s3:'#3e2e18',border:'#503c2240',text:'#f0d898',dim:'#a08440',dot:'rgba(220,180,60,.06)'},
+  {name:'EMBER+',bg:'#1a0e08',surface:'#261610',s2:'#321e18',s3:'#3e2820',border:'#543a2c40',text:'#e4c4a0',dim:'#946c48',dot:'rgba(200,130,70,.06)'},
 ];
 const tg=document.getElementById('themeGrid');
 THEMES.forEach(t=>{const b=document.createElement('button');
@@ -7589,8 +7597,6 @@ addBeat(0);addMixer();
 
 // === MOBILE SUPPORT ===
 // === WORKSPACE SCROLL LOCK FOR TOUCH ===
-// Locks workspace scroll when touching interactive elements inside modules
-// so dragging doesn't fight with workspace panning
 const _wsEl=document.querySelector('.workspace');
 let _wsLockCount=0;
 function lockWsScroll(){
@@ -7651,7 +7657,6 @@ function addTouchPoly(root){
     s.addEventListener('touchstart',()=>lockWsScroll(),{passive:true});
     s.addEventListener('touchend',()=>unlockWsScroll(),{passive:true});
     s.addEventListener('touchcancel',()=>unlockWsScroll());
-  });
   });
 }
 // Patch existing modules
