@@ -355,28 +355,28 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .pk-b{width:18px;height:58%}
 
   /* Form elements */
-  input[type="range"]{height:8px;min-height:36px;touch-action:none}
-  input[type="range"]::-webkit-slider-thumb{width:24px;height:24px;border-radius:50%;margin-top:-8px;box-shadow:0 0 0 3px var(--surface),0 2px 8px rgba(0,0,0,.4)}
-  input[type="range"]::-webkit-slider-runnable-track{height:8px;border-radius:4px}
-  select{font-size:10px!important;min-height:30px;padding:4px 8px!important;border-radius:4px}
-  input[type="text"],input[type="number"],textarea{font-size:12px!important;min-height:30px;padding:4px 8px!important}
-  input[type="color"]{width:36px;height:32px;border-radius:5px;padding:2px}
+  input[type="range"]{height:4px;min-height:24px;touch-action:none}
+  input[type="range"]::-webkit-slider-thumb{width:18px;height:18px;border-radius:50%;margin-top:-7px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+  input[type="range"]::-webkit-slider-runnable-track{height:4px;border-radius:2px}
+  select{font-size:10px!important;min-height:28px;padding:3px 6px!important;border-radius:4px}
+  input[type="text"],input[type="number"],textarea{font-size:11px!important;min-height:28px;padding:3px 6px!important}
+  input[type="color"]{width:32px;height:28px;border-radius:4px;padding:2px}
 
   /* Button/chip base */
   .pbtn{min-height:28px;padding:4px 10px;font-size:8px;border-radius:4px}
   button{-webkit-tap-highlight-color:transparent}
 
-  /* FX grid — 2 columns on touch, bigger knobs */
-  .fxg{gap:6px;grid-template-columns:repeat(2,1fr)!important}
-  .fxk{padding:8px}
-  .fxk label{font-size:7px!important}
-  .fxk input[type="range"]{min-height:32px}
-  .fxks{gap:8px}
+  /* FX grid — 2 columns on touch */
+  .fxg{gap:4px;grid-template-columns:repeat(2,1fr)!important}
+  .fxk{padding:4px}
+  .fxk label{font-size:6px!important}
+  .fxk input[type="range"]{min-height:22px}
+  .fxks{gap:4px}
 
   /* Knobs */
-  .sk{padding:8px}
-  .sk label{font-size:7px!important}
-  .sk input[type="range"]{min-height:32px}
+  .sk{padding:4px}
+  .sk label{font-size:6px!important}
+  .sk input[type="range"]{min-height:22px}
 
   /* Sequencer cells */
   .nr-cell{min-height:22px!important;min-width:22px!important}
@@ -405,17 +405,17 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   /* Toast bigger */
   .toast{font-size:11px;padding:8px 16px;border-radius:6px}
 
-  /* Mixer — 2-column wrap, bigger controls */
-  .mxchs{flex-wrap:wrap;gap:6px}
-  .mxch{min-width:calc(50% - 6px);flex:1 1 calc(50% - 6px);padding:8px}
-  .mxhd .mxnm{font-size:10px!important}
-  .mxr{gap:6px}
-  .mxr label{font-size:7px!important;width:28px}
-  .mxr input[type="range"]{min-height:32px}
-  .mxv{font-size:9px!important;min-width:24px}
-  .mxb{width:28px;height:28px;font-size:12px}
-  .mxmb{min-width:28px;min-height:28px;font-size:10px}
-  .mxtr{gap:4px}
+  /* Mixer — 2-column wrap */
+  .mxchs{flex-wrap:wrap;gap:4px}
+  .mxch{min-width:calc(50% - 4px);flex:1 1 calc(50% - 4px);padding:6px}
+  .mxhd .mxnm{font-size:9px!important}
+  .mxr{gap:4px}
+  .mxr label{font-size:6px!important;width:24px}
+  .mxr input[type="range"]{min-height:22px}
+  .mxv{font-size:8px!important;min-width:20px}
+  .mxb{width:24px;height:24px;font-size:10px}
+  .mxmb{min-width:24px;min-height:24px;font-size:9px}
+  .mxtr{gap:3px}
 
   /* Workspace — custom scrollbars handle scrolling */
   .workspace{overscroll-behavior:contain}
