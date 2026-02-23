@@ -5800,49 +5800,92 @@ function addVocal(ci=0){
     if(!fileBuf)return;
     // Stop previous
     if(fileSrc){try{fileSrc.stop()}catch(e){}}
-    if(active&&!micStream){active=false;destroyChain()}
     // Init
     initA();if(!ctx)return;
     if(ctx.state==='suspended')await ctx.resume();
+    // Destroy old chain if source changed
+    if(active)destroyChain();
     // Create new buffer source
     const src=ctx.createBufferSource();src.buffer=fileBuf;
     src.loop=loopOn;
     src._startTime=ctx.currentTime;
     fileSrc=src;
-    // Try building FX chain
+    micSrc=src;active=true;
+    // Build FX chain
     try{
-      micSrc=src;active=true;
       buildChain();
-      console.log('[VOCAL] Chain built ok, nodes:', Object.keys(nodes).length);
     }catch(e){
-      console.error('[VOCAL] Chain build FAILED:', e);
+      console.error('[VOCAL] Chain build failed:', e);
       src.connect(m.dst());
     }
     src.start(0);fileIsPlaying=true;
     playFileBtn.textContent='\u25b6 Playing...';
     src.onended=()=>{
       fileIsPlaying=false;playFileBtn.textContent='\u25b6 PLAY';
-      if(!micStream){active=false;destroyChain();micSrc=null;fileSrc=null}
+      // DON'T destroy chain — keep nodes alive so knob tweaks still apply on next play
+      // Just clear the source reference
+      fileSrc=null;micSrc=null;
     };
   }
   function stopFile(){
     if(fileSrc){try{fileSrc.stop()}catch(e){};fileSrc=null}
     fileIsPlaying=false;playFileBtn.textContent='\u25b6 PLAY';
-    if(!micStream&&active){active=false;destroyChain();micSrc=null}
+    // Keep chain alive if mic is on
+    if(!micStream){micSrc=null}
   }
   playFileBtn.addEventListener('click',playFile);
   stopFileBtn.addEventListener('click',stopFile);
 
-  // Build audio chain
-  // Build audio chain — simple serial approach
+  // Build audio chain — with pitch shifting via dual-grain delay
   function buildChain(){
     initA();if(!ctx||!micSrc)return;
     destroyChain();
     const dst=m.dst();
     const n={};
+    const sr=ctx.sampleRate;
 
-    // Simple serial chain: src -> hpf -> lpf -> dist -> delay -> reverb -> out
-    // Each effect is always in the chain, controlled by params
+    // === PITCH SHIFTER (granular: 2 overlapping grains with sawtooth-modulated delays) ===
+    const grainSize=0.08; // 80ms grains
+    n.pitchDl1=ctx.createDelay(1);n.pitchDl1.delayTime.value=0;
+    n.pitchDl2=ctx.createDelay(1);n.pitchDl2.delayTime.value=grainSize/2;
+    n.pitchG1=ctx.createGain();n.pitchG1.gain.value=1;
+    n.pitchG2=ctx.createGain();n.pitchG2.gain.value=1;
+    // Sawtooth LFOs for grain cycling
+    n.pitchLfo1=ctx.createOscillator();n.pitchLfo1.type='sawtooth';
+    n.pitchLfo2=ctx.createOscillator();n.pitchLfo2.type='sawtooth';
+    n.pitchLfoG1=ctx.createGain();n.pitchLfoG2=ctx.createGain();
+    // Windowing: triangle envelope per grain using sawtooth->abs trick
+    n.pitchEnv1=ctx.createOscillator();n.pitchEnv1.type='triangle';
+    n.pitchEnv2=ctx.createOscillator();n.pitchEnv2.type='triangle';
+    n.pitchEnvG1=ctx.createGain();n.pitchEnvG1.gain.value=0;
+    n.pitchEnvG2=ctx.createGain();n.pitchEnvG2.gain.value=0;
+    // Setup pitch shift amount
+    const pitchSemis=params.pitch;
+    const rate=1-Math.pow(2,pitchSemis/12); // delay modulation rate
+    const lfoFreq=1/grainSize;
+    n.pitchLfo1.frequency.value=lfoFreq;
+    n.pitchLfo2.frequency.value=lfoFreq;
+    n.pitchLfoG1.gain.value=rate*grainSize/2;
+    n.pitchLfoG2.gain.value=rate*grainSize/2;
+    n.pitchEnv1.frequency.value=lfoFreq;
+    n.pitchEnv2.frequency.value=lfoFreq;
+    // Wire LFOs to delay times
+    n.pitchLfo1.connect(n.pitchLfoG1);n.pitchLfoG1.connect(n.pitchDl1.delayTime);
+    n.pitchLfo2.connect(n.pitchLfoG2);n.pitchLfoG2.connect(n.pitchDl2.delayTime);
+    // Wire envelopes to grain gains
+    n.pitchEnv1.connect(n.pitchEnvG1.gain);
+    n.pitchEnv2.connect(n.pitchEnvG2.gain);
+    // Start with phase offset
+    n.pitchLfo1.start();n.pitchLfo2.start(ctx.currentTime+grainSize/2);
+    n.pitchEnv1.start();n.pitchEnv2.start(ctx.currentTime+grainSize/2);
+    n.pitchMerge=ctx.createGain();n.pitchMerge.gain.value=1;
+    n.pitchDry=ctx.createGain();n.pitchDry.gain.value=1;
+    n.pitchWet=ctx.createGain();n.pitchWet.gain.value=0;
+
+    // === FORMANT SHIFTER (dual biquad peaks shifted up/down) ===
+    n.fmtPeak1=ctx.createBiquadFilter();n.fmtPeak1.type='peaking';n.fmtPeak1.Q.value=2;n.fmtPeak1.gain.value=0;
+    n.fmtPeak2=ctx.createBiquadFilter();n.fmtPeak2.type='peaking';n.fmtPeak2.Q.value=2;n.fmtPeak2.gain.value=0;
+    n.fmtPeak3=ctx.createBiquadFilter();n.fmtPeak3.type='peaking';n.fmtPeak3.Q.value=2;n.fmtPeak3.gain.value=0;
 
     // Filters
     n.hpf=ctx.createBiquadFilter();n.hpf.type='highpass';n.hpf.frequency.value=params.hpf;n.hpf.Q.value=.7;
@@ -5872,16 +5915,16 @@ function addVocal(ci=0){
 
     // Reverb (convolution)
     n.rvConv=ctx.createConvolver();
-    const rvLen=ctx.sampleRate*2.5;const rvBuf=ctx.createBuffer(2,rvLen,ctx.sampleRate);
+    const rvLen=sr*2.5;const rvBuf=ctx.createBuffer(2,rvLen,sr);
     for(let ch=0;ch<2;ch++){const d=rvBuf.getChannelData(ch);
       for(let i=0;i<rvLen;i++)d[i]=(Math.random()*2-1)*Math.pow(1-i/rvLen,2)}
     n.rvConv.buffer=rvBuf;
     n.rvWet=ctx.createGain();n.rvWet.gain.value=params.reverb/100*0.6;
     n.rvMerge=ctx.createGain();n.rvMerge.gain.value=1;
 
-    // Robot - ring modulator (multiply audio by sine)
+    // Robot - ring modulator
     n.robotOsc=ctx.createOscillator();n.robotOsc.frequency.value=200;n.robotOsc.type='sine';
-    n.robotMod=ctx.createGain();n.robotMod.gain.value=0; // audio goes here, osc controls gain
+    n.robotMod=ctx.createGain();n.robotMod.gain.value=0;
     n.robotDry=ctx.createGain();n.robotDry.gain.value=1;
     n.robotWet=ctx.createGain();n.robotWet.gain.value=0;
     n.robotOsc.start();
@@ -5900,36 +5943,46 @@ function addVocal(ci=0){
     waveAn=n.waveAn;waveBuf=new Uint8Array(n.waveAn.fftSize);
 
     // === WIRE ===
-    // src -> hpf -> lpf -> dist
-    micSrc.connect(n.hpf);n.hpf.connect(n.lpf);n.lpf.connect(n.dist);
+    // src -> pitch shift
+    micSrc.connect(n.pitchDl1);micSrc.connect(n.pitchDl2);
+    n.pitchDl1.connect(n.pitchEnvG1);n.pitchDl2.connect(n.pitchEnvG2);
+    n.pitchEnvG1.connect(n.pitchWet);n.pitchEnvG2.connect(n.pitchWet);
+    micSrc.connect(n.pitchDry);
+    n.pitchDry.connect(n.pitchMerge);n.pitchWet.connect(n.pitchMerge);
+
+    // pitch -> formant
+    n.pitchMerge.connect(n.fmtPeak1);n.fmtPeak1.connect(n.fmtPeak2);n.fmtPeak2.connect(n.fmtPeak3);
+
+    // formant -> hpf -> lpf -> dist
+    n.fmtPeak3.connect(n.hpf);n.hpf.connect(n.lpf);n.lpf.connect(n.dist);
 
     // dist -> chorus (dry + wet merge)
-    n.dist.connect(n.chMerge); // dry path
+    n.dist.connect(n.chMerge);
     n.dist.connect(n.chDl1);n.dist.connect(n.chDl2);
     n.chDl1.connect(n.chWet);n.chDl2.connect(n.chWet);
-    n.chWet.connect(n.chMerge); // wet added
+    n.chWet.connect(n.chMerge);
 
     // chorus -> delay (dry + wet merge)
-    n.chMerge.connect(n.dlMerge); // dry path
+    n.chMerge.connect(n.dlMerge);
     n.chMerge.connect(n.dl);
-    n.dl.connect(n.dlWet);n.dlWet.connect(n.dlMerge); // wet added
-    n.dl.connect(n.dlFb);n.dlFb.connect(n.dl); // feedback loop
+    n.dl.connect(n.dlWet);n.dlWet.connect(n.dlMerge);
+    n.dl.connect(n.dlFb);n.dlFb.connect(n.dl);
 
     // delay -> reverb (dry + wet merge)
-    n.dlMerge.connect(n.rvMerge); // dry path
+    n.dlMerge.connect(n.rvMerge);
     n.dlMerge.connect(n.rvConv);
-    n.rvConv.connect(n.rvWet);n.rvWet.connect(n.rvMerge); // wet added
+    n.rvConv.connect(n.rvWet);n.rvWet.connect(n.rvMerge);
 
     // reverb -> robot (dry + ring mod merge)
-    n.rvMerge.connect(n.robotDry); // dry path
-    n.rvMerge.connect(n.robotMod); // audio into mod gain
-    n.robotOsc.connect(n.robotMod.gain); // osc controls the gain = ring mod
+    n.rvMerge.connect(n.robotDry);
+    n.rvMerge.connect(n.robotMod);
+    n.robotOsc.connect(n.robotMod.gain);
     n.robotMod.connect(n.robotWet);
     n.robotDry.connect(n.robotMerge);n.robotWet.connect(n.robotMerge);
 
     // robot -> bandpass/telephone (dry + filtered merge)
-    n.robotMerge.connect(n.bpDry); // dry
-    n.robotMerge.connect(n.bp);n.bp.connect(n.bpPeak);n.bpPeak.connect(n.bpWet); // filtered
+    n.robotMerge.connect(n.bpDry);
+    n.robotMerge.connect(n.bp);n.bp.connect(n.bpPeak);n.bpPeak.connect(n.bpWet);
     n.bpDry.connect(n.bpMerge);n.bpWet.connect(n.bpMerge);
 
     // -> output
@@ -5937,7 +5990,7 @@ function addVocal(ci=0){
     n.outGain.connect(n.waveAn);n.waveAn.connect(dst);
 
     nodes=n;
-    applyParams(); // set all values
+    applyParams();
   }
 
   function updateDist(n){
@@ -5949,12 +6002,34 @@ function addVocal(ci=0){
 
   function applyParams(){
     const n=nodes;if(!n.hpf){
-      console.log('[VOCAL] applyParams: no chain yet, active=',active,'micSrc=',!!micSrc);
       if(active&&micSrc){buildChain();return}
       return;
     }
-    console.log('[VOCAL] applyParams: reverb=',params.reverb,'delay=',params.delay,'robot=',params.robot,'chorus=',params.chorus);
     const t=ctx.currentTime;
+    // Pitch shift
+    const pitchSemis=params.pitch;
+    const hasPitch=Math.abs(pitchSemis)>0.1;
+    const grainSize=0.08;
+    const rate=1-Math.pow(2,pitchSemis/12);
+    if(n.pitchLfoG1){
+      n.pitchLfoG1.gain.setTargetAtTime(rate*grainSize/2,t,.02);
+      n.pitchLfoG2.gain.setTargetAtTime(rate*grainSize/2,t,.02);
+      n.pitchWet.gain.setTargetAtTime(hasPitch?1:0,t,.02);
+      n.pitchDry.gain.setTargetAtTime(hasPitch?0:1,t,.02);
+    }
+    // Formant shift (move vocal formant peaks)
+    const fmtSemis=params.formant;
+    const fmtRatio=Math.pow(2,fmtSemis/12);
+    const hasFmt=Math.abs(fmtSemis)>0.1;
+    if(n.fmtPeak1){
+      n.fmtPeak1.frequency.setTargetAtTime(Math.min(20000,500*fmtRatio),t,.02);
+      n.fmtPeak2.frequency.setTargetAtTime(Math.min(20000,1500*fmtRatio),t,.02);
+      n.fmtPeak3.frequency.setTargetAtTime(Math.min(20000,3500*fmtRatio),t,.02);
+      const fmtGain=hasFmt?Math.min(12,Math.abs(fmtSemis)*1.5):0;
+      n.fmtPeak1.gain.setTargetAtTime(fmtGain,t,.02);
+      n.fmtPeak2.gain.setTargetAtTime(fmtGain*0.7,t,.02);
+      n.fmtPeak3.gain.setTargetAtTime(fmtGain*0.4,t,.02);
+    }
     // Filters
     n.hpf.frequency.setTargetAtTime(Math.max(20,params.hpf),t,.02);
     n.lpf.frequency.setTargetAtTime(Math.min(20000,params.lpf),t,.02);
@@ -5984,11 +6059,12 @@ function addVocal(ci=0){
       n.bpPeak.gain.setTargetAtTime(15,t,.02)}
     else{n.bpPeak.gain.setTargetAtTime(0,t,.02)}
     if(telAmt<0.01){n.bpWet.gain.setTargetAtTime(0,t,.02);n.bpDry.gain.setTargetAtTime(1,t,.02)}
-    // Pitch (rebuild needed for pitch changes - skip for now, needs delay mod)
   }
 
   function destroyChain(){
-    [nodes.chLfo,nodes.robotOsc].forEach(o=>{try{if(o){o.stop();o.disconnect()}}catch(e){}});
+    // Stop all oscillators
+    [nodes.chLfo,nodes.robotOsc,nodes.pitchLfo1,nodes.pitchLfo2,nodes.pitchEnv1,nodes.pitchEnv2].forEach(o=>{
+      try{if(o){o.stop();o.disconnect()}}catch(e){}});
     Object.values(nodes).forEach(n=>{try{if(n&&n.disconnect)n.disconnect()}catch(e){}});
     nodes={};waveAn=null;waveBuf=null;
   }
