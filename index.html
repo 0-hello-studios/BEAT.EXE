@@ -4784,133 +4784,125 @@ function addSave(){
 
   // AI FEED — copy prompt + schema to clipboard for any AI
   const aiRow=document.createElement('div');aiRow.style.cssText='display:grid;grid-template-columns:1fr 1fr;gap:4px;padding:0 4px;margin:6px 0 2px';
-  aiRow.appendChild(mkB('🤖 FEED AI','#a855f7',()=>{
-    const P=`You are an expert music producer generating projects for STUDIO.EXE, a browser DAW. You output ONLY valid JSON — no markdown, no fences, no explanation. Just raw JSON the user pastes directly into the app.
+  aiRow.appendChild(mkB('\u{1F916} FEED AI','#a855f7',()=>{
+    const P=`You are an expert music producer for STUDIO.EXE, a browser DAW. Output ONLY valid JSON. No markdown, no fences, no explanation.
 
-YOUR GOAL: Create COMPLETE, POLISHED tracks — not loops. Real songs with structure, variation, dynamics, and cohesive sound design.
-
-=== SONG STRUCTURE (CRITICAL) ===
-Use the 4 channels as SONG SECTIONS and chain mode to arrange them:
-- Channel 0: Intro / sparse section (fewer elements, building energy)
-- Channel 1: Verse / main groove (core beat + melody, medium energy)
-- Channel 2: Drop / chorus (full energy, all elements hitting)
-- Channel 3: Breakdown / bridge (stripped back, tension builder)
-
-Set seq.mode to "chain" and seq.order to arrange sections into a real track, e.g.:
-"seq":{"mode":"chain","barsPerCh":2,"order":[0,0,1,1,1,1,2,2,2,2,1,1,3,3,2,2,2,2],"customPattern":[[],[],[],[]]}
-This plays: 4 bars intro, 8 bars verse, 8 bars drop, 4 bars verse, 4 bars breakdown, 8 bars drop = full track.
-
-=== PATTERN VARIATION (CRITICAL) ===
-ALWAYS use ts:32 (32 steps). The second half (steps 16-31) should DIFFER from the first half:
-- Add fills on steps 29-31 (snare roll, tom fill, hihat open)
-- Remove or add kick hits for variation
-- Shift percussion timing in second half
-- Add ghost notes (low velocity 0.3-0.5 hits)
-NEVER just repeat the same 16 steps twice. Real music breathes.
-
-=== EACH CHANNEL NEEDS DIFFERENT PATTERNS ===
-Ch0 (intro): Only kick + hihat, maybe a perc. Sparse. Let the listener ease in.
-Ch1 (verse): Full beat but leave space. Bass pattern present but not dominant.
-Ch2 (drop): Everything hitting. Harder kick, fuller hat pattern, bass on every kick, synth stabs. Maximum energy.
-Ch3 (breakdown): Remove kick. Hihats only or offbeat perc. Let pads/chords carry it. Create tension for the return.
-
-=== SOUND DESIGN PRINCIPLES ===
-Frequency separation — don't stack everything in the same range:
-- Kick + Bass: Low end (sub-200Hz). Use "Kick 808" or "Kick Deep" for weight.
-- Snare + Clap: Mid (200-2kHz). Layer snare+clap on same step for thickness.
-- HiHats + Perc: High (2kHz+). These provide rhythm and air.
-- Synth/Chord: Mid-high (300-5kHz). Don't compete with bass.
-
-Synth settings that actually sound good:
-- Pads: wv:triangle, a:0.15+, d:0.4, s:0.7, r:1.0+, ff:3000-5000, det:8-15
-- Leads: wv:sawtooth, a:0.005, d:0.15, s:0.4, r:0.2, ff:1500-3000, fr:5-12, det:5-10
-- Bass: wv:square or sawtooth, a:0.001, d:0.3, s:0.2, r:0.1, ff:400-1200, oct:2-3
-- Plucks: wv:sawtooth, a:0.001, d:0.1, s:0.05, r:0.1, ff:2000, fr:3
-- Stabs: wv:square, a:0.001, d:0.08, s:0, r:0.05, ff:1800, det:15-25
-
-=== CHORD PROGRESSIONS THAT WORK ===
-Don't just pick random chords. Use these proven progressions:
-Minor key (dark): Am-F-C-G | Am-Dm-E-Am | Cm-Ab-Eb-Bb | Am-Em-F-G
-Major key (bright): C-G-Am-F | F-G-Am-G | Eb-Bb-Cm-Ab
-Jazz/soul: Fmaj7-Em7-Dm7-Cmaj7 | Am9-Dm7-Gmaj7-Cmaj7
-Dark/tense: Am-Bdim-E-Am | Dm-Bb-Gm-A
-Set stepsPerChord:8 for slow changes (pads) or 4 for faster (rhythm).
-Match chord oct to 3-4. Avoid oct:5+ for chords (too thin).
-
-=== NOTE/MELODY WRITING ===
-Melodies should follow the chord tones. Row mapping (13 rows top to bottom at oct:4):
-Row 0=C5, 1=B4, 2=A#4, 3=A4, 4=G#4, 5=G4, 6=F#4, 7=F4, 8=E4, 9=D#4, 10=D4, 11=C#4, 12=C4
-Tips: Use chord tones on strong beats (steps 0,4,8,12,16,20,24,28). Use passing tones between. Leave gaps — silence is musical. Repeat a motif then shift it. Don't fill every step.
-
-=== FX MIXING ===
-Less is more. Don't max everything out.
-Drums: Light reverb (wet:15-25), gentle compression (thresh:-14, ratio:3-4). Maybe light saturation (drive:5-12).
-Melody/lead: More reverb (wet:25-40), delay with moderate feedback (fb:35-50, wet:15-25).
-Pads: Heavy reverb (wet:35-55) for space, usually no delay.
-General: Keep distortion subtle (amount:5-15). Filter sweep via automation is more effective than static filter.
-Slider order: [rvb-size,rvb-damp,rvb-wet, dly-time,dly-fb,dly-wet, chr-rate,chr-depth,chr-wet, phs-rate,phs-depth,phs-wet, dist-amt,bits,bits-wet, flt-freq,flt-Q, comp-thresh,comp-ratio,comp-wet, sat-drive,sat-wet, eq-lo,eq-mid,eq-hi]
-Toggles: [reverb,delay,chorus,phaser,dist,bitcrush,filter,comp,sat,eq]
-
-=== AUTOMATION ===
-Use filter automation for movement and energy. Values 0-100. ALWAYS use 32 values for ts:32.
-Builds: [20,22,25,30,35,42,48,55,60,65,70,76,80,84,88,92,20,25,32,40,50,58,65,72,78,84,90,94,96,98,99,100]
-Sweeps: [20,30,45,60,80,95,100,90,75,55,35,20,15,25,45,65,85,100,95,80,60,40,25,15,20,35,55,75,90,100,85,60]
-Pumping: [100,55,75,45,100,55,80,50,100,60,75,40,100,55,85,50,100,50,70,40,100,55,80,45,100,60,75,50,95,45,80,100]
-
-=== SIDECHAIN ===
-Essential for making kicks punch through. Put sidechain on the chord/pad channel, triggered on kick hits.
-depth:0.6-0.85, attack:0.002-0.005, release:0.08-0.15 (shorter for fast genres, longer for chill).
-Pattern should match kick pattern from ch2 (drop channel) for maximum pump.
+=== ARCHITECTURE ===
+4 channels play SIMULTANEOUSLY as layers. mode:"all".
+Ch0=Drums, Ch1=Chords/Pads, Ch2=Lead/Melody, Ch3=Bass.
 
 === SCHEMA ===
-{"v":1,"channels":[{"bpm":120,"sw":0},{"bpm":120,"sw":0},{"bpm":120,"sw":0},{"bpm":120,"sw":0}],"seq":{"mode":"chain","barsPerCh":2,"order":[0,0,1,1,1,1,2,2,2,2,1,1,3,3,2,2,2,2],"customPattern":[[],[],[],[]]},"theme":{},"modules":[]}
+{"v":1,"channels":[{"bpm":124,"sw":0},{"bpm":124,"sw":0},{"bpm":124,"sw":0},{"bpm":124,"sw":0}],"seq":{"mode":"all","barsPerCh":2,"order":[0,1,2,3],"customPattern":[[],[],[],[]]},"theme":{},"modules":[...]}
+sw=swing(0-100). All channels SAME bpm.
 
-BEAT: {"type":"beat","ci":0,"x":20,"y":20,"w":840,"h":320,"ts":32,"cm":8,"ch":[
-{"n":"Kick","t":"kick","s":"Kick 808","c":"var(--kick)","v":0.9,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Snare","t":"snare","s":"Snare Crack","c":"var(--snare)","v":0.8,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"HiHat","t":"hihat","s":"HH Closed","c":"var(--hihat)","v":0.7,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Clap","t":"clap","s":"Clap Tight","c":"var(--clap)","v":0.75,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Tom","t":"tom","s":"Tom Mid","c":"var(--tom)","v":0.7,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Perc","t":"perc","s":"Perc Click","c":"var(--perc)","v":0.65,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Bass","t":"bass","s":"Bass Sub","c":"var(--bass)","v":0.8,"mut":false,"solo":false,"steps":[32 booleans]},
-{"n":"Synth","t":"synth","s":"Synth Stab","c":"var(--synth)","v":0.6,"mut":false,"solo":false,"steps":[32 booleans]}]}
-Sounds — kick: Kick 808/Punchy/Deep/Tight/Dist/Boom | snare: Snare Crack/Tight/Lo-Fi/Rim/Clap | hihat: HH Closed/Open/Crispy/Shaker | clap: Clap Tight/Snap/Big | tom: Tom High/Mid/Floor | perc: Perc Click/Rim/Cowbell/Conga | bass: Bass Sub/Saw/Square/Pluck/808/Dist | synth: Synth Stab/Pluck/Chord/Zap/Pad/Keys
-YOU MUST include a beat module on EVERY channel (ci:0,1,2,3) with DIFFERENT patterns per section.
+=== BEAT (ch0 drums) ===
+{"type":"beat","ci":0,"x":20,"y":20,"w":840,"h":320,"ts":32,"cm":8,"ch":[
+{"n":"Kick","t":"kick","s":"Kick 808","c":"var(--kick)","v":0.9,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Snare","t":"snare","s":"Snare Crack","c":"var(--snare)","v":0.78,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"HiHat","t":"hihat","s":"HH Closed","c":"var(--hihat)","v":0.6,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Clap","t":"clap","s":"Clap Tight","c":"var(--clap)","v":0.7,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Tom","t":"tom","s":"Tom Mid","c":"var(--tom)","v":0.55,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Perc","t":"perc","s":"Perc Conga","c":"var(--perc)","v":0.45,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Bass","t":"bass","s":"Bass Sub","c":"var(--bass)","v":0.8,"mut":false,"solo":false,"steps":[...32 booleans...]},
+{"n":"Synth","t":"synth","s":"Synth Stab","c":"var(--synth)","v":0.5,"mut":false,"solo":false,"steps":[...32 booleans...]}
+]}
+CRITICAL: Every steps array MUST be EXACTLY 32 booleans. ts MUST be 32.
+Set mut:true and v:0 for unused channels. Don't leave them out.
+Sounds: kick=Kick 808/Punchy/Deep/Tight/Dist/Boom | snare=Snare Crack/Tight/Lo-Fi/Rim/Clap | hihat=HH Closed/Open/Crispy/Shaker | clap=Clap Tight/Snap/Big | tom=Tom High/Mid/Floor | perc=Perc Click/Rim/Cowbell/Conga | bass=Bass Sub/Saw/Square/Pluck/808/Dist | synth=Synth Stab/Pluck/Chord/Zap/Pad/Keys
+Pattern tips: 4otf kick=[true,false,false,false] repeated. Offbeat hats=[false,false,true,false] repeated. Snare on 2&4=step 4 and 12. Second 16 steps should DIFFER from first 16 (add fills, ghost notes, shift timing).
 
-SYNTH: {"type":"synth","ci":0,"x":880,"y":20,"w":500,"h":280,"wv":"sawtooth","det":5,"a":0.01,"d":0.2,"s":0.5,"r":0.3,"ff":4000,"fr":1,"vol":0.6,"oct":4}
-NOTE: {"type":"note","ci":0,"x":200,"y":60,"w":680,"h":280,"ts":32,"oct":4,"wv":"sawtooth","vol":0.4,"a":0.005,"d":0.1,"s":0.4,"r":0.15,"ff":3000,"fr":1,"det":5,"inst":"lead","cells":[[row,col],...]}
-13 rows top-to-bottom: C5,B4,A#,A,G#,G,F#,F,E,D#,D,C#,C4. inst: lead/pad/bass/pluck/keys/organ.
-CHORD: {"type":"chord","ci":1,"x":300,"y":100,"w":540,"h":260,"ts":32,"oct":3,"vol":0.5,"wv":"triangle","det":3,"a":0.02,"d":0.3,"s":0.6,"r":0.5,"stepsPerChord":8,"slots":[{"root":"C","type":"min7"},{"root":"Ab","type":"maj7"},...]}
-Types: maj/min/dim/aug/sus2/sus4/maj7/min7/dom7/dim7/add9/madd9/6/min6/9/min9/maj9/11/13/power
-FX: {"type":"fx","ci":0,"x":20,"y":350,"w":620,"h":280,"sliders":[25 numbers],"toggles":[10 booleans]}
-AUTO: {"type":"auto","ci":0,"x":20,"y":500,"w":600,"h":200,"ts":32,"activeParam":"filter","curves":{"filter":[32 values 0-100]}}
-SIDECHAIN: {"type":"sidechain","ci":2,"x":640,"y":500,"w":380,"h":180,"depth":0.8,"attack":0.005,"release":0.15,"pattern":[32 values 0 or 1]}
-PIANO: {"type":"piano","ci":0,"x":100,"y":350,"w":460,"h":180,"wv":"triangle","det":3,"a":0.01,"d":0.3,"s":0.6,"r":0.4,"ff":5000,"fr":1,"vol":0.5,"oct":4,"sus":false}
-BASS: {"type":"bass","ci":0,"x":100,"y":400,"w":420,"h":160,"vol":0.7,"oct":2,"mode":"sub"} modes: sub/saw/square/fm
-MIXER: {"type":"mixer","ci":0,"x":700,"y":400,"w":500,"h":300}
+=== CHORD (ch1 pads) ===
+{"type":"chord","ci":1,"x":20,"y":360,"w":540,"h":260,"ts":32,"oct":3,"vol":0.4,"wv":"triangle","det":10,"a":0.15,"d":0.4,"s":0.7,"r":1.0,"stepsPerChord":8,"slots":[{"root":"A","type":"min7"},{"root":"F","type":"maj7"},{"root":"C","type":"maj7"},{"root":"E","type":"min"}]}
+Chord types: maj/min/dim/aug/sus2/sus4/maj7/min7/dom7/dim7/add9/madd9/6/min6/9/min9/maj9/11/13/power
+Proven progressions: Am-F-C-G | Cm-Ab-Eb-Bb | Fmaj7-Em7-Dm7-Cmaj7 | C-G-Am-F
+Pad sound: wv:triangle, a:0.15+, d:0.4, s:0.7, r:1.0+, oct:3, det:8-15
 
-=== MANDATORY CHECKLIST ===
-Your output MUST include ALL of these:
-1. A beat module on EACH channel (ci:0,1,2,3) with DIFFERENT patterns reflecting that section's energy
-2. seq.mode:"chain" with a meaningful order array (at least 12 entries for a full track)
-3. ts:32 on all sequenced modules with real variation in the second 16 steps
-4. At least one chord module with a musically correct progression
-5. At least one synth+note pair for melody
-6. FX on at least the drum channel with reverb+compression enabled
-7. Sidechain on the chord/pad channel synced to kick
-8. Filter automation on at least one channel
-9. A mixer module
-10. Proper volume balance: kicks 0.85-0.95, snare 0.7-0.85, hats 0.5-0.7, bass 0.7-0.85, chords 0.3-0.5, lead 0.4-0.6
-GENRE BPM: trap=140, lofi=82, house=124, drill=140, dnb=174, rnb=95, pop=118, reggaeton=96, afrobeats=108
+=== NOTE (ch2 melody) ===
+{"type":"note","ci":2,"x":580,"y":360,"w":700,"h":280,"ts":32,"oct":4,"wv":"sawtooth","vol":0.45,"a":0.008,"d":0.18,"s":0.4,"r":0.25,"ff":2400,"fr":8,"det":7,"inst":"lead","cells":[[row,col],...]}
+13 rows at oct4 (top to bottom): 0=C5, 1=B4, 2=Bb4, 3=A4, 4=Ab4, 5=G4, 6=F#4, 7=F4, 8=E4, 9=Eb4, 10=D4, 11=Db4, 12=C4
+inst: lead/pad/bass/pluck/keys/organ. col range: 0-31 for ts:32.
+Tips: Hit chord tones on beats 0,4,8,12,16,20,24,28. Leave gaps. 10-18 notes is good, don't fill every step.
 
-Generate the project now based on the user's request.`;
+=== NOTE (ch3 bass) ===
+Use a second note module for bass line on ch3:
+{"type":"note","ci":3,"x":20,"y":660,"w":700,"h":280,"ts":32,"oct":3,"wv":"sawtooth","vol":0.7,"a":0.002,"d":0.25,"s":0.25,"r":0.1,"ff":900,"fr":2,"det":3,"inst":"bass","cells":[[row,col],...]}
+Bass should follow chord roots. At oct3 the row mapping is same but one octave lower.
+
+=== FX (CRITICAL: EXACT COUNTS) ===
+FX modules save as slider values + toggle states. The arrays must be EXACTLY these sizes:
+- sliders: EXACTLY 39 numbers
+- toggles: EXACTLY 19 booleans
+
+{"type":"fx","ci":0,"x":20,"y":960,"w":620,"h":280,"sliders":[39 numbers],"toggles":[19 booleans]}
+
+SLIDER ORDER (39 total):
+[0]Reverb Mix(0-100), [1]Reverb Decay(10-100),
+[2]Delay Time(5-100), [3]Delay Feedback(0-90), [4]Delay Mix(0-100),
+[5]Distort Drive(0-100),
+[6]Filter Freq(100-18000),
+[7]Chorus Rate(0-100), [8]Chorus Depth(0-100),
+[9]Phaser Rate(0-100), [10]Phaser Depth(0-100),
+[11]Compress Threshold(0-100), [12]Compress Ratio(0-100),
+[13]Bitcrush Bits(0-100), [14]Bitcrush Mix(0-100),
+[15]Vinyl Crackle(0-100), [16]Vinyl Hiss(0-100),
+[17]Wobble Rate(0-100), [18]Wobble Depth(0-100),
+[19]LoFi Cutoff(200-8000), [20]LoFi Noise(0-100),
+[21]Saturate Drive(0-100), [22]Saturate Mix(0-100),
+[23]Tremolo Rate(0-100), [24]Tremolo Depth(0-100),
+[25]RingMod Freq(0-100), [26]RingMod Mix(0-100),
+[27]Flanger Rate(0-100), [28]Flanger Depth(0-100), [29]Flanger Feed(0-100),
+[30]Limiter Thresh(0-100), [31]Limiter Release(0-100),
+[32]Gate Thresh(0-100), [33]Gate Speed(0-100),
+[34]EQ Lo(0-100), [35]EQ Mid(0-100), [36]EQ Hi(0-100),
+[37]Pitch Semi(0-100), [38]Pitch Mix(0-100)
+
+TOGGLE ORDER (19 total):
+[0]Reverb, [1]Delay, [2]Distort, [3]Filter, [4]Chorus, [5]Phaser, [6]Compress, [7]Bitcrush, [8]Vinyl, [9]Wobble, [10]LoFi, [11]Saturate, [12]Tremolo, [13]RingMod, [14]Flanger, [15]Limiter, [16]Gate, [17]EQ, [18]Pitch
+
+DEFAULT FX for drums (just reverb+compress on):
+{"type":"fx","ci":0,"x":20,"y":960,"w":620,"h":280,
+"sliders":[30,80,50,35,25,40,2000,40,40,25,60,50,60,50,40,30,20,25,30,3000,15,50,70,40,60,30,50,30,50,40,70,30,30,50,50,50,50,50,60],
+"toggles":[true,false,false,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false]}
+
+DEFAULT FX for pads (reverb+chorus on):
+{"type":"fx","ci":1,"x":660,"y":960,"w":620,"h":280,
+"sliders":[55,80,50,35,25,40,2000,40,50,25,60,50,60,50,40,30,20,25,30,3000,15,50,70,40,60,30,50,30,50,40,70,30,30,50,50,50,50,50,60],
+"toggles":[true,false,false,false,true,false,false,false,false,false,false,false,false,false,false,false,false,false,false]}
+
+=== AUTOMATION ===
+{"type":"auto","ci":0,"x":1300,"y":20,"w":600,"h":200,"ts":32,"activeParam":"filter","curves":{"filter":[...32 values 0-100...]}}
+Use for filter sweeps. Values 0-100. MUST be exactly 32 values.
+
+=== SIDECHAIN ===
+{"type":"sidechain","ci":1,"x":1300,"y":460,"w":380,"h":180,"depth":0.75,"attack":0.003,"release":0.12,"pattern":[...32 values, each 0 or 1...]}
+Put on pad channel (ci:1). Pattern should match kick hits. MUST be exactly 32 values.
+
+=== MIXER ===
+{"type":"mixer","ci":0,"x":1300,"y":660,"w":500,"h":300}
+
+=== VALIDATION CHECKLIST ===
+Before outputting, verify:
+1. ONE beat module on ci:0 with ALL 8 channels, each with EXACTLY 32 boolean steps
+2. ONE chord module on ci:1
+3. ONE note module on ci:2 (melody) with cells as [row,col] pairs
+4. ONE note module on ci:3 (bass)
+5. FX sliders arrays are EXACTLY 39 numbers each
+6. FX toggles arrays are EXACTLY 19 booleans each
+7. Sidechain pattern is EXACTLY 32 values (0 or 1)
+8. Auto curves are EXACTLY 32 values (0-100)
+9. All channels have same BPM
+10. seq.mode is "all"
+
+BPM guide: trap=140, lofi=82, house=124, drill=140, dnb=174, rnb=95, techno=132, pop=118
+
+Output valid JSON now.`;
     navigator.clipboard.writeText(P).then(()=>{
-      status.textContent='AI prompt copied! Paste into any AI ✓';status.style.color='#a855f7';
+      status.textContent='AI prompt copied! Paste into any AI \u2713';status.style.color='#a855f7';
       setTimeout(()=>{status.style.color='var(--dim)';status.textContent='Ready'},3000);
     }).catch(()=>{
       const ta=document.createElement('textarea');ta.value=P;ta.style.cssText='position:fixed;left:-9999px';
       document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-      status.textContent='AI prompt copied! Paste into any AI ✓';status.style.color='#a855f7';
+      status.textContent='AI prompt copied! Paste into any AI \u2713';status.style.color='#a855f7';
       setTimeout(()=>{status.style.color='var(--dim)';status.textContent='Ready'},3000);
     });
   }));
