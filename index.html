@@ -311,6 +311,91 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .fxg{grid-template-columns:1fr}
   .piano-kb,.skb{height:60px}
 }
+
+/* ═══ TABLET / TOUCH (iPad) ═══ */
+@media(pointer:coarse){
+  /* Toolbar — bigger touch targets */
+  .tb-row1{height:42px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch}
+  .tb-row2{height:36px;gap:4px;padding:0 6px;-webkit-overflow-scrolling:touch}
+  .abtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px}
+  .abtn .dot{width:6px;height:6px}
+  .xbtn{font-size:8px;padding:5px 10px;min-height:32px;border-radius:4px}
+  .chtab{font-size:8px;padding:5px 8px;min-height:32px}
+  .chtab .cdot{width:6px;height:6px}
+  .ch-tabs{gap:3px}
+  .topbar h1{font-size:13px}
+  .sep{height:20px;margin:0 3px}
+
+  /* Windows — larger headers, drag areas, close buttons */
+  .win{border-radius:10px}
+  .wh{height:36px;padding:0 10px;gap:6px;border-radius:10px 10px 0 0}
+  .wt{font-size:11px}
+  .wb{width:26px;height:26px;border-radius:5px;font-size:11px}
+  .wbody{padding:8px 10px;-webkit-overflow-scrolling:touch}
+  .wresize{width:24px;height:24px}
+  .wresize::after{width:10px;height:10px;bottom:4px;right:4px}
+
+  /* Beat steps — bigger for finger tapping */
+  .bstep{min-width:22px!important;min-height:28px!important;border-radius:3px}
+
+  /* Piano keys — taller and wider */
+  .piano-kb,.skb{height:90px}
+  .swk,.pk-w{min-width:32px!important}
+  .pk-b{width:18px;height:58%}
+
+  /* Form elements */
+  input[type="range"]{height:8px;min-height:28px}
+  input[type="range"]::-webkit-slider-thumb{width:20px;height:20px;border-radius:50%;margin-top:-6px}
+  select{font-size:10px!important;min-height:30px;padding:4px 8px!important;border-radius:4px}
+  input[type="text"],input[type="number"],textarea{font-size:12px!important;min-height:30px;padding:4px 8px!important}
+  input[type="color"]{width:36px;height:32px;border-radius:5px;padding:2px}
+
+  /* Button/chip base */
+  .pbtn{min-height:28px;padding:4px 10px;font-size:8px;border-radius:4px}
+  button{-webkit-tap-highlight-color:transparent}
+
+  /* FX grid */
+  .fxg{gap:4px}
+  .fxk{padding:6px}
+  .fxk input[type="range"]{min-height:28px}
+
+  /* Knobs */
+  .sk{padding:6px}
+  .sk input[type="range"]{min-height:28px}
+
+  /* Sequencer cells */
+  .nr-cell{min-height:22px!important;min-width:22px!important}
+
+  /* Theme grid — bigger theme buttons */
+  #themeGrid{grid-template-columns:repeat(3,1fr)!important;gap:4px!important}
+  #themeGrid button{height:36px!important;border-radius:6px!important}
+  #themeGrid button span{font-size:7px!important}
+
+  /* Tracks / arranger */
+  .arr-clip{min-height:48px}
+  .arr-clip-handle{width:16px!important;opacity:1!important}
+  .arr-clip-handle::after{width:5px;height:24px;border-radius:3px}
+  .arr-clip-label{font-size:9px}
+  .arr-tbtn{min-width:36px;min-height:36px;font-size:14px;border-radius:6px}
+  .arr-ctrl{gap:6px;padding:6px 8px}
+  .arr-track-hd{min-width:100px}
+
+  /* Automation canvas — taller for easier drawing */
+  /* (handled in JS below) */
+
+  /* Safe area */
+  body{padding-bottom:env(safe-area-inset-bottom)}
+  .topbar{padding-top:env(safe-area-inset-top)}
+
+  /* Toast bigger */
+  .toast{font-size:11px;padding:8px 16px;border-radius:6px}
+
+  /* Workspace */
+  .workspace{-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+
+  /* Scrollbar thin on touch */
+  .wbody::-webkit-scrollbar{width:3px}
+}
 </style>
 <script src="https://surikov.github.io/webaudiofont/npm/dist/WebAudioFontPlayer.js"></script>
 </head>
@@ -4281,8 +4366,10 @@ function addOsc(ci=0){
 
   // === CUSTOM DRAW ===
   const drawRow=document.createElement('div');drawRow.style.cssText='display:none;margin-bottom:4px';
-  const drawCvs=document.createElement('canvas');drawCvs.style.cssText='width:100%;height:60px;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair';
-  drawCvs.width=512;drawCvs.height=60;
+  const drawCvs=document.createElement('canvas');
+  const _isTouch='ontouchstart'in window||navigator.maxTouchPoints>0;
+  drawCvs.style.cssText='width:100%;height:'+(_isTouch?'100':'60')+'px;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair;touch-action:none';
+  drawCvs.width=512;drawCvs.height=_isTouch?100:60;
   function renderDraw(){const c=drawCvs,x=c.getContext('2d'),W=c.width,H=c.height;
     x.clearRect(0,0,W,H);x.strokeStyle='rgba(255,255,255,.06)';x.lineWidth=1;
     x.beginPath();x.moveTo(0,H/2);x.lineTo(W,H/2);x.stroke();
@@ -7320,6 +7407,31 @@ function addTracks(ci=0){
           const onUp=()=>{window.removeEventListener('mousemove',onMove);window.removeEventListener('mouseup',onUp);clipEl.classList.remove('dragging');if(moved){render();if(m.playing){const cur=needleBeat*(60/m.bpm);playSrcs.forEach(s=>{try{s.stop()}catch(e){}});playSrcs=[];m.playing=false;playAll_arr(cur)}}};
           window.addEventListener('mousemove',onMove);window.addEventListener('mouseup',onUp);
         });
+        // Touch clip drag
+        clipEl.addEventListener('touchstart',e=>{
+          if(e.target.classList.contains('arr-clip-handle'))return;
+          e.stopPropagation();e.preventDefault();selectedClip=c;
+          const touch=e.touches[0];
+          const startX=touch.clientX,startY=touch.clientY,origBeat=c.startBeat;
+          let moved=false;let curTrackIdx=ti;
+          clipEl.classList.add('dragging');
+          const onMove=ev=>{
+            ev.preventDefault();const tv=ev.touches[0];moved=true;
+            c.startBeat=Math.max(0,snapBeats(origBeat+pxToBeats(tv.clientX-startX)));
+            clipEl.style.left=beatsToPx(c.startBeat)+'px';
+            const tlRect=timeline.getBoundingClientRect();
+            const y=tv.clientY-tlRect.top+timeline.scrollTop-24;
+            const newIdx=Math.max(0,Math.min(m.tracks.length-1,Math.floor(y/TRACK_H)));
+            if(newIdx!==curTrackIdx){
+              const oldT=m.tracks[curTrackIdx];const newT=m.tracks[newIdx];
+              const ci2=oldT.clips.indexOf(c);
+              if(ci2>=0){oldT.clips.splice(ci2,1);newT.clips.push(c);c.color=newT.color;curTrackIdx=newIdx}
+            }
+            clipEl.style.top=(3+(curTrackIdx-ti)*TRACK_H)+'px';
+          };
+          const onUp=()=>{window.removeEventListener('touchmove',onMove);window.removeEventListener('touchend',onUp);clipEl.classList.remove('dragging');if(moved){render();if(m.playing){const cur=needleBeat*(60/m.bpm);playSrcs.forEach(s=>{try{s.stop()}catch(e){}});playSrcs=[];m.playing=false;playAll_arr(cur)}}};
+          window.addEventListener('touchmove',onMove,{passive:false});window.addEventListener('touchend',onUp);
+        },{passive:false});
         // Right-click delete
         clipEl.addEventListener('contextmenu',e=>{e.preventDefault();const idx=t.clips.indexOf(c);if(idx>=0)t.clips.splice(idx,1);if(selectedClip===c)selectedClip=null;render()});
         // Resize handles
@@ -7333,11 +7445,22 @@ function addTracks(ci=0){
             clipEl.style.left=beatsToPx(c.startBeat)+'px';clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)}};
           const onU=()=>{window.removeEventListener('mousemove',onM);window.removeEventListener('mouseup',onU);render()};
           window.addEventListener('mousemove',onM);window.addEventListener('mouseup',onU)});
+        hL.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();const sx=e.touches[0].clientX,os=c.startBeat,od=c.durBeats,oo=c.offset||0;
+          const onM=ev=>{ev.preventDefault();const tx=ev.touches[0].clientX;const ns=snapBeats(os+pxToBeats(tx-sx)),d=ns-os;if(od-d>.25){
+            const secPerBeat=60/m.bpm;const offsetDelta=d*secPerBeat;
+            c.offset=Math.max(0,oo+offsetDelta);c.startBeat=ns;c.durBeats=od-d;
+            clipEl.style.left=beatsToPx(c.startBeat)+'px';clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)}};
+          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);render()};
+          window.addEventListener('touchmove',onM,{passive:false});window.addEventListener('touchend',onU)},{passive:false});
         const hR=document.createElement('div');hR.className='arr-clip-handle right';
         hR.addEventListener('mousedown',e=>{e.stopPropagation();e.preventDefault();const sx=e.clientX,od=c.durBeats;
           const onM=ev=>{c.durBeats=Math.max(.25,snapBeats(od+pxToBeats(ev.clientX-sx)));clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)};
           const onU=()=>{window.removeEventListener('mousemove',onM);window.removeEventListener('mouseup',onU);render()};
           window.addEventListener('mousemove',onM);window.addEventListener('mouseup',onU)});
+        hR.addEventListener('touchstart',e=>{e.stopPropagation();e.preventDefault();const sx=e.touches[0].clientX,od=c.durBeats;
+          const onM=ev=>{ev.preventDefault();const tx=ev.touches[0].clientX;c.durBeats=Math.max(.25,snapBeats(od+pxToBeats(tx-sx)));clipEl.style.width=Math.max(16,beatsToPx(c.durBeats))+'px';if(!_resizeAF)_resizeAF=requestAnimationFrame(_liveWave)};
+          const onU=()=>{window.removeEventListener('touchmove',onM);window.removeEventListener('touchend',onU);render()};
+          window.addEventListener('touchmove',onM,{passive:false});window.addEventListener('touchend',onU)},{passive:false});
         clipEl.append(hL,hR);body.appendChild(clipEl);
       });
 
@@ -7502,11 +7625,30 @@ wsObs.observe(wsI,{childList:true});
 
 // Prevent iOS long-press context menu on interactive elements
 document.addEventListener('contextmenu',e=>{
-  if(e.target.closest('.pk-w,.pk-b,.swk,.sbk,.key,.bkey,.bstep,.wh,.pbtn,.nr-cell,button'))e.preventDefault();
+  if(e.target.closest('.pk-w,.pk-b,.swk,.sbk,.key,.bkey,.bstep,.wh,.pbtn,.nr-cell,button,.arr-clip,.arr-clip-handle'))e.preventDefault();
 });
 // Prevent rubber-band scroll on iOS
 document.body.addEventListener('touchmove',e=>{
-  if(!e.target.closest('.wbody,.workspace,.piano-kb,.skb,.nr-wrap,.arr-timeline,.tb-row1,.tb-row2'))e.preventDefault();
+  if(!e.target.closest('.wbody,.workspace,.piano-kb,.skb,.nr-wrap,.arr-timeline,.tb-row1,.tb-row2,#themeGrid'))e.preventDefault();
 },{passive:false});
+
+// Touch press feedback on buttons
+if('ontouchstart'in window||navigator.maxTouchPoints>0){
+  document.addEventListener('touchstart',e=>{
+    const btn=e.target.closest('.abtn,.xbtn,.pbtn,.wb,.chtab,.arr-tbtn,button');
+    if(btn){btn.style.opacity='.7';btn.style.transform='scale(.95)';btn.style.transition='transform .08s,opacity .08s'}
+  },{passive:true});
+  document.addEventListener('touchend',e=>{
+    const btn=e.target.closest('.abtn,.xbtn,.pbtn,.wb,.chtab,.arr-tbtn,button');
+    if(btn){btn.style.opacity='';btn.style.transform='';btn.style.transition=''}
+  },{passive:true});
+  // Prevent double-tap zoom on buttons
+  let _lastTouchEnd=0;
+  document.addEventListener('touchend',e=>{
+    const now=Date.now();
+    if(now-_lastTouchEnd<300&&e.target.closest('button,.abtn,.xbtn,.pbtn,.wb,.chtab,.bstep,.arr-tbtn'))e.preventDefault();
+    _lastTouchEnd=now;
+  },{passive:false});
+}
 </script>
 </body></html>
