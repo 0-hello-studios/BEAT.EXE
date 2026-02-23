@@ -4502,6 +4502,21 @@ function addOsc(ci=0){
 
   // === CUSTOM DRAW ===
   const drawRow=document.createElement('div');drawRow.style.cssText='display:none;margin-bottom:4px';
+  let _autoDrawMode=false;
+  const drawToggle=document.createElement('button');
+  drawToggle.className='pbtn';
+  drawToggle.style.cssText='margin-bottom:4px;font-weight:800;letter-spacing:.5px;width:100%;transition:all .15s';
+  drawToggle.textContent='✏ DRAW MODE: OFF';
+  drawToggle.addEventListener('click',()=>{
+    _autoDrawMode=!_autoDrawMode;
+    drawToggle.textContent=_autoDrawMode?'✏ DRAW MODE: ON — scroll locked':'✏ DRAW MODE: OFF';
+    drawToggle.style.background=_autoDrawMode?'#f59e0b':'';
+    drawToggle.style.color=_autoDrawMode?'#000':'';
+    drawToggle.style.borderColor=_autoDrawMode?'#f59e0b':'';
+    drawCvs.style.borderColor=_autoDrawMode?'#f59e0b':'var(--border)';
+    drawCvs.style.boxShadow=_autoDrawMode?'0 0 12px rgba(245,158,11,.3)':'none';
+  });
+  drawRow.appendChild(drawToggle);
   const drawCvs=document.createElement('canvas');
   const _isTouch='ontouchstart'in window||navigator.maxTouchPoints>0;
   drawCvs.style.cssText='width:100%;height:'+(_isTouch?'100':'60')+'px;background:var(--s2);border:1px solid var(--border);border-radius:4px;cursor:crosshair;touch-action:none;-webkit-touch-callout:none;-ms-touch-action:none';
@@ -4520,16 +4535,26 @@ function addOsc(ci=0){
   drawCvs.addEventListener('mousedown',e=>{drawDown=true;drawAt(e)});
   drawCvs.addEventListener('mousemove',e=>{if(drawDown)drawAt(e)});
   window.addEventListener('mouseup',()=>{if(drawDown&&m.looping&&m.useCustom){stopLoop();startLoop()}drawDown=false});
-  drawCvs.addEventListener('touchstart',e=>{e.preventDefault();e.stopPropagation();drawDown=true;lockWsScroll();
-    // Disable parent scroll while drawing
+  // Touch: only respond when draw mode is ON
+  drawCvs.addEventListener('touchstart',e=>{
+    if(!_autoDrawMode)return; // let scroll happen normally
+    e.preventDefault();e.stopPropagation();drawDown=true;
+    // Lock everything
+    document.body.style.overflow='hidden';
     const wb=drawCvs.closest('.wbody');if(wb){wb.style.overflow='hidden';wb.style.touchAction='none'}
-    drawAt(e.touches[0])},{passive:false});
-  drawCvs.addEventListener('touchmove',e=>{e.preventDefault();e.stopPropagation();if(drawDown)drawAt(e.touches[0])},{passive:false});
-  drawCvs.addEventListener('touchend',e=>{e.preventDefault();e.stopPropagation();
-    // Re-enable parent scroll
+    drawAt(e.touches[0]);
+  },{passive:false});
+  drawCvs.addEventListener('touchmove',e=>{
+    if(!_autoDrawMode||!drawDown)return;
+    e.preventDefault();e.stopPropagation();drawAt(e.touches[0]);
+  },{passive:false});
+  drawCvs.addEventListener('touchend',e=>{
+    if(!_autoDrawMode)return;
+    e.preventDefault();e.stopPropagation();
+    document.body.style.overflow='';
     const wb=drawCvs.closest('.wbody');if(wb){wb.style.overflow='auto';wb.style.touchAction=''}
-    unlockWsScroll();
-    if(drawDown&&m.looping&&m.useCustom){stopLoop();startLoop()}drawDown=false},{passive:false});
+    if(drawDown&&m.looping&&m.useCustom){stopLoop();startLoop()}drawDown=false;
+  },{passive:false});
   const drawCtrl=document.createElement('div');drawCtrl.style.cssText='display:flex;gap:3px;margin-top:3px';
   ['Sine','Saw','Sqr','Noise','Clear'].forEach(name=>{
     const b=document.createElement('button');b.className='pbtn';b.textContent=name;
