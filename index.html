@@ -335,7 +335,7 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .sep{height:20px;margin:0 3px}
 
   /* Windows — larger headers, drag areas, close buttons */
-  .win{border-radius:10px}
+  .win{border-radius:10px;max-width:calc(100vw - 44px)}
   .wh{height:36px;padding:0 10px;gap:6px;border-radius:10px 10px 0 0}
   .wt{font-size:11px}
   .wb{width:26px;height:26px;border-radius:5px;font-size:11px}
@@ -345,6 +345,9 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
 
   /* Beat steps — bigger for finger tapping */
   .bstep{min-width:22px!important;min-height:28px!important;border-radius:3px}
+  .bl{width:140px;min-width:140px}
+  .bl span{font-size:8px!important}
+  .bl button{min-width:20px!important;min-height:22px!important}
 
   /* Piano keys — taller and wider */
   .piano-kb,.skb{height:90px}
@@ -363,14 +366,17 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .pbtn{min-height:28px;padding:4px 10px;font-size:8px;border-radius:4px}
   button{-webkit-tap-highlight-color:transparent}
 
-  /* FX grid */
-  .fxg{gap:4px}
-  .fxk{padding:6px}
-  .fxk input[type="range"]{min-height:28px}
+  /* FX grid — 2 columns on touch, bigger knobs */
+  .fxg{gap:6px;grid-template-columns:repeat(2,1fr)!important}
+  .fxk{padding:8px}
+  .fxk label{font-size:7px!important}
+  .fxk input[type="range"]{min-height:32px}
+  .fxks{gap:8px}
 
   /* Knobs */
-  .sk{padding:6px}
-  .sk input[type="range"]{min-height:28px}
+  .sk{padding:8px}
+  .sk label{font-size:7px!important}
+  .sk input[type="range"]{min-height:32px}
 
   /* Sequencer cells */
   .nr-cell{min-height:22px!important;min-width:22px!important}
@@ -399,7 +405,20 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   /* Toast bigger */
   .toast{font-size:11px;padding:8px 16px;border-radius:6px}
 
+  /* Mixer — 2-column wrap, bigger controls */
+  .mxchs{flex-wrap:wrap;gap:6px}
+  .mxch{min-width:calc(50% - 6px);flex:1 1 calc(50% - 6px);padding:8px}
+  .mxhd .mxnm{font-size:10px!important}
+  .mxr{gap:6px}
+  .mxr label{font-size:7px!important;width:28px}
+  .mxr input[type="range"]{min-height:32px}
+  .mxv{font-size:9px!important;min-width:24px}
+  .mxb{width:28px;height:28px;font-size:12px}
+  .mxmb{min-width:28px;min-height:28px;font-size:10px}
+  .mxtr{gap:4px}
+
   /* Workspace — custom scrollbars handle scrolling */
+  .workspace{overscroll-behavior:contain}
   .workspace{overscroll-behavior:contain}
 
   /* Scrollbar thin on touch */
@@ -1041,6 +1060,14 @@ function setKb(id){_kb=_kb===id?null:id;document.querySelectorAll('.wb.kb').forE
 function mkW(title,tag,col,x,y,w,h,ci){
   // center on current viewport
   const ws=document.getElementById('workspace');
+  // Clamp size to viewport on touch
+  const isTouch=window.matchMedia('(pointer:coarse)').matches;
+  if(isTouch){
+    const maxW=ws.clientWidth-40;
+    const maxH=ws.clientHeight-60;
+    if(w>maxW)w=maxW;
+    if(h>maxH)h=maxH;
+  }
   const vx=(window._wsScrollX?window._wsScrollX():0)+ws.clientWidth/2-w/2;
   const vy=(window._wsScrollY?window._wsScrollY():0)+ws.clientHeight/2-h/2;
   // slight random offset so stacked windows don't perfectly overlap
