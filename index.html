@@ -354,10 +354,9 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .swk,.pk-w{min-width:32px!important}
   .pk-b{width:18px;height:58%}
 
-  /* Form elements */
-  input[type="range"]{height:4px;min-height:24px;touch-action:none}
-  input[type="range"]::-webkit-slider-thumb{width:18px;height:18px;border-radius:50%;margin-top:-7px;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-  input[type="range"]::-webkit-slider-runnable-track{height:4px;border-radius:2px}
+  /* Form elements — touch polyfill handles drag, keep sliders compact */
+  input[type="range"]{touch-action:none}
+  input[type="range"]::-webkit-slider-thumb{width:14px;height:14px;border-radius:50%;margin-top:-6px}
   select{font-size:10px!important;min-height:28px;padding:3px 6px!important;border-radius:4px}
   input[type="text"],input[type="number"],textarea{font-size:11px!important;min-height:28px;padding:3px 6px!important}
   input[type="color"]{width:32px;height:28px;border-radius:4px;padding:2px}
@@ -370,13 +369,11 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .fxg{gap:4px;grid-template-columns:repeat(2,1fr)!important}
   .fxk{padding:4px}
   .fxk label{font-size:6px!important}
-  .fxk input[type="range"]{min-height:22px}
   .fxks{gap:4px}
 
   /* Knobs */
   .sk{padding:4px}
   .sk label{font-size:6px!important}
-  .sk input[type="range"]{min-height:22px}
 
   /* Sequencer cells */
   .nr-cell{min-height:22px!important;min-width:22px!important}
@@ -411,7 +408,7 @@ button,select,input,.key,.bkey,.pk-w,.pk-b,.swk,.sbk,.bstep,.wh,.wresize,.nr-cel
   .mxhd .mxnm{font-size:9px!important}
   .mxr{gap:4px}
   .mxr label{font-size:6px!important;width:24px}
-  .mxr input[type="range"]{min-height:22px}
+  .mxr input[type="range"]{touch-action:none}
   .mxv{font-size:8px!important;min-width:20px}
   .mxb{width:24px;height:24px;font-size:10px}
   .mxmb{min-width:24px;min-height:24px;font-size:9px}
